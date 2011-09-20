@@ -86,7 +86,7 @@
 
 <p>And that&#8217;s kind of true.  However it is theoretically possible to create valid zip files that violate this principle in a platform independant manner.  Unfortunately this doesn&#8217;t work properly with Stuffit :(</p>
 
-<p>The data for a file entry must start immediately following the header, but the header can be upto ~65k and ends with fields that should be ignored if they are not understood.  So we can stuff a local file header inside the end of a parent local file header (and prefix 32 bytes of &#8220;unknown&#8221; extra field) so that it we have two valid local file headers that each end immediately before the only copy of the file data, as pictured:</p>
+<p>The data for a file entry must start immediately following the header, but the header can be upto ~65k and ends with fields that should be ignored if they are not understood.  So we can stuff a local file header inside the end of a parent local file header (and prefix 32 bytes of &#8220;unknown&#8221; extra field) so that we have two valid local file headers that each end immediately before the only copy of the file data, as pictured:</p>
 
 <p><img alt="Stuffing headers inside headers like Russian Dolls" src="/media/diagram-4ef36d62870790b1334d7a1835e239d7.png" width="410" height="294"></p>
 
