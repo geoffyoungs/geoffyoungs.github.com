@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title>frafferz/geek</title>
+  <link href="http://geoffyoungs.github.com/atom.xml" rel="self"/>
+  <link href="http://geoffyoungs.github.com/"/>
+  <updated>2011-09-20T22:01:25+01:00</updated>
+  <id>http://geoffyoungs.github.com/</id>
+  <author>
+    <name>Geoff Youngs</name>
+    
+  </author>
+
+  
+  <entry>
+    <title>Playing With Zip - Russian Dolls</title>
+    <link href="http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls/"/>
+    <updated>2011-09-20T20:16:00+01:00</updated>
+    <id>http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls</id>
+    <content type="html">&lt;p&gt;The standard answer is that zip files can't contain more than one copy of a file without containing more than one copy of a file.  In other words, there's not a portable version of a *nix style hard link.&lt;/p&gt;
+
+&lt;p&gt;And that's kind of true.  However it is theoretically possible to create valid zip files that violate this principle in a platform independant manner.  Unfortunately this doesn't work properly with Stuffit :(&lt;/p&gt;
+
+&lt;p&gt;The data for a file entry must start immediately following the header, but the header can be upto ~65k and ends with fields that should be ignored if they are not understood.  So we can stuff a local file header inside the end of a parent local file header and prefix with an unknown field type so that it it skipped by existing, as pictured:&lt;/p&gt;
+
+&lt;p&gt;&lt;img alt=&quot;Stuffing headers inside headers like Russian Dolls&quot; src=&quot;http://geoffyoungs.github.com/media/diagram-4ef36d62870790b1334d7a1835e239d7.png&quot; width=&quot;410&quot; height=&quot;294&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;And then we add the entries to Central Directory as if they were normal file entries.&lt;/p&gt;
+
+&lt;p&gt;Tests work fine with &lt;a href=&quot;http://www.info-zip.org/&quot;&gt;Info-ZIP&lt;/a&gt;, &lt;a href=&quot;http://www.7-zip.org&quot;&gt;7-Zip&lt;/a&gt; and the Windows built-in zip support.  Unfortunately Stuffit on OS X only appears to recognise the &quot;normal&quot; entries (ie. doesn't extract the embedded headers).&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
+    <title>Playing With Zip</title>
+    <link href="http://geoffyoungs.github.com/blog/2011/09/05/playing-with-zip/"/>
+    <updated>2011-09-05T18:36:00+01:00</updated>
+    <id>http://geoffyoungs.github.com/blog/2011/09/05/playing-with-zip</id>
+    <content type="html">&lt;p&gt;I wanted to stream zip files with lots of JPEGs in.  Hundreds of JPEGs from digital cameras and, being as they were JPEGs, didn't really care about trying to compress them any further.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;I wanted to create (potentially) huge archives.  So I'd need something that supported ZIP64 extensions.&lt;/li&gt;
+&lt;li&gt;I wanted to mix local files and files streamed from internal web servers.&lt;/li&gt;
+&lt;li&gt;I wanted to create a zip file on the fly, with minimal buffering, to minimize disk and memory requirements.&lt;/li&gt;
+&lt;li&gt;I wanted to support large numbers of simultaneous downloads.&lt;/li&gt;
+&lt;li&gt;I also wanted (if possible) to efficiently include the same file more than once in an archive with different filenames.&lt;/li&gt;
+&lt;li&gt;I wanted to continue to use zip archives.&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;p&gt;Simples?&lt;/p&gt;
+
+&lt;p&gt;If only.&lt;/p&gt;
+
+&lt;h3&gt;Streaming ZIP64 support (or lack thereof)&lt;/h3&gt;
+
+&lt;p&gt;There are several ruby zip libraries, e.g. &lt;a href=&quot;http://rubyzip.sourceforge.net/&quot;&gt;rubyzip&lt;/a&gt;, &lt;a href=&quot;https://bitbucket.org/winebarrel/zip-ruby/wiki/Home&quot;&gt;zip-ruby&lt;/a&gt; and &lt;a href=&quot;https://github.com/javanthropus/archive-zip&quot;&gt;archive-zip&lt;/a&gt; - but they seem to fall into two camps: pure ruby with no ZIP64 or wrapping a C library (e.g. libzip) but with no obvious way to create a zip file and start streaming it before it's complete.&lt;/p&gt;
+
+&lt;p&gt;So I indulged my NIH syndrome reflex and wrote &lt;a href=&quot;https://github.com/geoffyoungs/zip64writer&quot;&gt;zip64writer&lt;/a&gt; which streams zip files and can automatically starts using ZIP64 extensions when needed. (I did look at adding ZIP64 support to rubyzip, but I figured fairly quickly that it would be easier to roll a specifically targetted library than adapt it to my needs.)&lt;/p&gt;
+
+&lt;p&gt;So writing a zip file to a stream works something like:&lt;/p&gt;
+
+&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
+&lt;span class='line'&gt;2&lt;/span&gt;
+&lt;span class='line'&gt;3&lt;/span&gt;
+&lt;span class='line'&gt;4&lt;/span&gt;
+&lt;span class='line'&gt;5&lt;/span&gt;
+&lt;span class='line'&gt;6&lt;/span&gt;
+&lt;span class='line'&gt;7&lt;/span&gt;
+&lt;span class='line'&gt;8&lt;/span&gt;
+&lt;span class='line'&gt;9&lt;/span&gt;
+&lt;span class='line'&gt;10&lt;/span&gt;
+&lt;span class='line'&gt;11&lt;/span&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;nb&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;zip64/writer&amp;#39;&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;no&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;output.zip&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;wb&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;no&quot;&gt;Zip64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;ZipWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;        &lt;span class=&quot;no&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;sample.jpg&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;rb&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rfp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;            &lt;span class=&quot;n&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_entry&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rfp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;                    &lt;span class=&quot;ss&quot;&gt;:mtime&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;                    &lt;span class=&quot;ss&quot;&gt;:name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;myphoto.jpg&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# Implicit close writes central directory to stream&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+
+
+&lt;p&gt;ZIP64 extensions are extra header fields, and an extra couple of blocks at the end of the zip file, which allow zip files to contain more than 65,535 entries (the limit of a 16bit integer) &amp;amp; for the zip archives (and the files inside them) to be greater than 4 Gb (the limit of a 32bit integer) in size.&lt;/p&gt;
+
+&lt;p&gt;&lt;img alt=&quot;ASCII Art Diagram&quot; src=&quot;http://geoffyoungs.github.com/media/diagram-1b9d6331495747733185d5affed5e57a.png&quot; width=&quot;500&quot; height=&quot;266&quot;&gt;&lt;/p&gt;
+
+&lt;p&gt;The writer detects when an offset requires a 64bit integer (ie. offset &gt;4Gb) and automatically starts using ZIP64 extensions - so the files are still as compatible as possible with old zip implementations that don't support ZIP64 (e.g. Windows XP shell).&lt;/p&gt;
+
+&lt;p&gt;Basic testing reveals that ZIP64 files created this way (ie. a mix of standard encoding and ZIP64 encoding) work fine on Windows 7, OS X 10.5+.  (Also the version of file-roller shipped with Lucid Lynx opens them fine, although the version of zip shipped with Hardy Heron is too old.)&lt;/p&gt;
+</content>
+  </entry>
+  
+</feed>

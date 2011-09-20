@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>frafferz/geek</title>
+  <title>Playing With Zip - frafferz/geek</title>
   <meta name="author" content="Geoff Youngs">
   
 
@@ -16,7 +16,7 @@
 
   
 
-  <link rel="canonical" href="http://geoffyoungs.github.com/index.html"/>
+  <link rel="canonical" href="http://geoffyoungs.github.com/blog/2011/09/05/playing-with-zip/"/>
   <link href="/favicon.png" rel="shortcut icon" />
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -56,56 +56,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
-
-
-
-  <article>
-    
+      <div>
+<article class="hentry">
+  
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2011/09/20/playing-with-zip-russian-dolls/">Playing With Zip - Russian Dolls</a></h1>
-    
-    
-      <p class="meta">
-
-
-
-
-
-  
-
-
-
-<time datetime="2011-09-20T20:16:00+01:00" pubdate  data-updated="true" >Sep 20<span>th</span>, 2011</time></p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>The standard answer is that zip files can&#8217;t contain more than one copy of a file without containing more than one copy of a file.  In other words, there&#8217;s not a portable version of a *nix style hard link.</p>
-
-<p>And that&#8217;s kind of true.  However it is theoretically possible to create valid zip files that violate this principle in a platform independant manner.  Unfortunately this doesn&#8217;t work properly with Stuffit :(</p>
-
-<p>The data for a file entry must start immediately following the header, but the header can be upto ~65k and ends with fields that should be ignored if they are not understood.  So we can stuff a local file header inside the end of a parent local file header and prefix with an unknown field type so that it it skipped by existing, as pictured:</p>
-
-<p><img alt="Stuffing headers inside headers like Russian Dolls" src="/media/diagram-4ef36d62870790b1334d7a1835e239d7.png" width="410" height="294"></p>
-
-<p>And then we add the entries to Central Directory as if they were normal file entries.</p>
-
-<p>Tests work fine with <a href="http://www.info-zip.org/">Info-ZIP</a>, <a href="http://www.7-zip.org">7-Zip</a> and the Windows built-in zip support.  Unfortunately Stuffit on OS X only appears to recognise the &#8220;normal&#8221; entries (ie. doesn&#8217;t extract the embedded headers).</p>
-</div>
-  
-  
-
-
-  </article>
-
-
-  <article>
-    
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/09/05/playing-with-zip/">Playing With Zip</a></h1>
+      <h1 class="entry-title">Playing With Zip</h1>
     
     
       <p class="meta">
@@ -123,7 +79,7 @@
   </header>
 
 
-  <div class="entry-content"><p>I wanted to stream zip files with lots of JPEGs in.  Hundreds of JPEGs from digital cameras and, being as they were JPEGs, didn&#8217;t really care about trying to compress them any further.</p>
+<div class="entry-content"><p>I wanted to stream zip files with lots of JPEGs in.  Hundreds of JPEGs from digital cameras and, being as they were JPEGs, didn&#8217;t really care about trying to compress them any further.</p>
 
 <ol>
 <li>I wanted to create (potentially) huge archives.  So I&#8217;d need something that supported ZIP64 extensions.</li>
@@ -180,21 +136,52 @@
 
 <p>Basic testing reveals that ZIP64 files created this way (ie. a mix of standard encoding and ZIP64 encoding) work fine on Windows 7, OS X 10.5+.  (Also the version of file-roller shipped with Lucid Lynx opens them fine, although the version of zip shipped with Hardy Heron is too old.)</p>
 </div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Geoff Youngs</span></span>
+
+      
+
+
+
+
+
+  
+
+
+
+<time datetime="2011-09-05T18:36:00+01:00" pubdate  data-updated="true" >Sep 5<span>th</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>ruby</a>, <a class='category' href='/blog/categories/zip/'>zip</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://geoffyoungs.github.com/blog/2011/09/05/playing-with-zip/" data-via="geoffyoungs" data-counturl="http://geoffyoungs.github.com/blog/2011/09/05/playing-with-zip/" >Tweet</a>
   
   
+  <div class="g-plusone" data-size="medium"></div>
+  
+</div>
 
-
-  </article>
-
-<nav role="pagination">
-  <div>
     
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
-</nav>
+  </footer>
+</article>
 
 </div>
+
 <aside role=sidebar>
   
     <section>
@@ -263,6 +250,7 @@
 
   
 </aside>
+
 
     </div>
   </div>

@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>frafferz/geek</title>
+  <title>Playing With Zip - Russian Dolls - frafferz/geek</title>
   <meta name="author" content="Geoff Youngs">
   
 
@@ -16,7 +16,7 @@
 
   
 
-  <link rel="canonical" href="http://geoffyoungs.github.com/index.html"/>
+  <link rel="canonical" href="http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls/"/>
   <link href="/favicon.png" rel="shortcut icon" />
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -56,15 +56,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
-
-
-
-  <article>
-    
+      <div>
+<article class="hentry">
+  
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2011/09/20/playing-with-zip-russian-dolls/">Playing With Zip - Russian Dolls</a></h1>
+      <h1 class="entry-title">Playing With Zip - Russian Dolls</h1>
     
     
       <p class="meta">
@@ -82,7 +79,7 @@
   </header>
 
 
-  <div class="entry-content"><p>The standard answer is that zip files can&#8217;t contain more than one copy of a file without containing more than one copy of a file.  In other words, there&#8217;s not a portable version of a *nix style hard link.</p>
+<div class="entry-content"><p>The standard answer is that zip files can&#8217;t contain more than one copy of a file without containing more than one copy of a file.  In other words, there&#8217;s not a portable version of a *nix style hard link.</p>
 
 <p>And that&#8217;s kind of true.  However it is theoretically possible to create valid zip files that violate this principle in a platform independant manner.  Unfortunately this doesn&#8217;t work properly with Stuffit :(</p>
 
@@ -94,21 +91,16 @@
 
 <p>Tests work fine with <a href="http://www.info-zip.org/">Info-ZIP</a>, <a href="http://www.7-zip.org">7-Zip</a> and the Windows built-in zip support.  Unfortunately Stuffit on OS X only appears to recognise the &#8220;normal&#8221; entries (ie. doesn&#8217;t extract the embedded headers).</p>
 </div>
+
+
+  <footer>
+    <p class="meta">
+      
   
-  
 
+<span class="byline author vcard">Posted by <span class="fn">Geoff Youngs</span></span>
 
-  </article>
-
-
-  <article>
-    
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2011/09/05/playing-with-zip/">Playing With Zip</a></h1>
-    
-    
-      <p class="meta">
+      
 
 
 
@@ -118,83 +110,33 @@
 
 
 
-<time datetime="2011-09-05T18:36:00+01:00" pubdate  data-updated="true" >Sep 5<span>th</span>, 2011</time></p>
+<time datetime="2011-09-20T20:16:00+01:00" pubdate  data-updated="true" >Sep 20<span>th</span>, 2011</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/ruby/'>ruby</a>, <a class='category' href='/blog/categories/zip/'>zip</a>
+  
+</span>
+
+
+    </p>
     
-  </header>
-
-
-  <div class="entry-content"><p>I wanted to stream zip files with lots of JPEGs in.  Hundreds of JPEGs from digital cameras and, being as they were JPEGs, didn&#8217;t really care about trying to compress them any further.</p>
-
-<ol>
-<li>I wanted to create (potentially) huge archives.  So I&#8217;d need something that supported ZIP64 extensions.</li>
-<li>I wanted to mix local files and files streamed from internal web servers.</li>
-<li>I wanted to create a zip file on the fly, with minimal buffering, to minimize disk and memory requirements.</li>
-<li>I wanted to support large numbers of simultaneous downloads.</li>
-<li>I also wanted (if possible) to efficiently include the same file more than once in an archive with different filenames.</li>
-<li>I wanted to continue to use zip archives.</li>
-</ol>
-
-
-<p>Simples?</p>
-
-<p>If only.</p>
-
-<h3>Streaming ZIP64 support (or lack thereof)</h3>
-
-<p>There are several ruby zip libraries, e.g. <a href="http://rubyzip.sourceforge.net/">rubyzip</a>, <a href="https://bitbucket.org/winebarrel/zip-ruby/wiki/Home">zip-ruby</a> and <a href="https://github.com/javanthropus/archive-zip">archive-zip</a> - but they seem to fall into two camps: pure ruby with no ZIP64 or wrapping a C library (e.g. libzip) but with no obvious way to create a zip file and start streaming it before it&#8217;s complete.</p>
-
-<p>So I indulged my NIH syndrome reflex and wrote <a href="https://github.com/geoffyoungs/zip64writer">zip64writer</a> which streams zip files and can automatically starts using ZIP64 extensions when needed. (I did look at adding ZIP64 support to rubyzip, but I figured fairly quickly that it would be easier to roll a specifically targetted library than adapt it to my needs.)</p>
-
-<p>So writing a zip file to a stream works something like:</p>
-
-<div><figure role=code> <div class="highlight"><table cellpadding="0" cellspacing="0"><tr><td class="gutter"><pre class="line-numbers"><span class='line'>1</span>
-<span class='line'>2</span>
-<span class='line'>3</span>
-<span class='line'>4</span>
-<span class='line'>5</span>
-<span class='line'>6</span>
-<span class='line'>7</span>
-<span class='line'>8</span>
-<span class='line'>9</span>
-<span class='line'>10</span>
-<span class='line'>11</span>
-</pre></td><td class='code' width='100%'><pre><code class='ruby'><div class='line'><span class="nb">require</span> <span class="s1">&#39;zip64/writer&#39;</span>
-</div><div class='line'>
-</div><div class='line'><span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;output.zip&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">fp</span><span class="o">|</span>
-</div><div class='line'>    <span class="no">Zip64</span><span class="o">::</span><span class="no">ZipWriter</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">zip</span><span class="o">|</span>
-</div><div class='line'>        <span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;sample.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">rfp</span><span class="o">|</span>
-</div><div class='line'>            <span class="n">zip</span><span class="o">.</span><span class="n">add_entry</span><span class="p">(</span><span class="n">rfp</span><span class="p">,</span>
-</div><div class='line'>                    <span class="ss">:mtime</span> <span class="o">=&gt;</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
-</div><div class='line'>                    <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;myphoto.jpg&#39;</span><span class="p">)</span>
-</div><div class='line'>        <span class="k">end</span>
-</div><div class='line'>    <span class="k">end</span> <span class="c1"># Implicit close writes central directory to stream</span>
-</div><div class='line'><span class="k">end</span>
-</div></code></pre></td></tr></table></div></figure></div>
-
-
-<p>ZIP64 extensions are extra header fields, and an extra couple of blocks at the end of the zip file, which allow zip files to contain more than 65,535 entries (the limit of a 16bit integer) &amp; for the zip archives (and the files inside them) to be greater than 4 Gb (the limit of a 32bit integer) in size.</p>
-
-<p><img alt="ASCII Art Diagram" src="/media/diagram-1b9d6331495747733185d5affed5e57a.png" width="500" height="266"></p>
-
-<p>The writer detects when an offset requires a 64bit integer (ie. offset >4Gb) and automatically starts using ZIP64 extensions - so the files are still as compatible as possible with old zip implementations that don&#8217;t support ZIP64 (e.g. Windows XP shell).</p>
-
-<p>Basic testing reveals that ZIP64 files created this way (ie. a mix of standard encoding and ZIP64 encoding) work fine on Windows 7, OS X 10.5+.  (Also the version of file-roller shipped with Lucid Lynx opens them fine, although the version of zip shipped with Hardy Heron is too old.)</p>
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls/" data-via="geoffyoungs" data-counturl="http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
 </div>
-  
-  
 
-
-  </article>
-
-<nav role="pagination">
-  <div>
     
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
-</nav>
+  </footer>
+</article>
 
 </div>
+
 <aside role=sidebar>
   
     <section>
@@ -263,6 +205,7 @@
 
   
 </aside>
+
 
     </div>
   </div>
