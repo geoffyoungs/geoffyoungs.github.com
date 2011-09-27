@@ -2,6 +2,13 @@ require "rubygems"
 require "bundler/setup"
 require "stringex"
 
+require 'posix-spawn'
+module Kernel
+def spawn(*args)
+POSIX::Spawn.spawn(*args)
+end
+end
+
 ## -- Rsync Deploy config -- ##
 # Be sure your public key is listed in your server's ~/.ssh/authorized_keys file
 ssh_user       = "user@domain.com"
