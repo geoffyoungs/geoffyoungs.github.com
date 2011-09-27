@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Playing With Zip - Russian Dolls - frafferz/geek</title>
+  <title>Passenger Standalone on Ubuntu 11.10 (Oneiric Ocelot) - frafferz/geek</title>
   <meta name="author" content="Geoff Youngs">
   
 
@@ -16,7 +16,7 @@
 
   
 
-  <link rel="canonical" href="http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls/"/>
+  <link rel="canonical" href="http://geoffyoungs.github.com/blog/2011/09/27/passenger-standalone-on-ubuntu-11-dot-10-oneiric/"/>
   <link href="/favicon.png" rel="shortcut icon" />
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -61,7 +61,7 @@
   
   <header>
     
-      <h1 class="entry-title">Playing With Zip - Russian Dolls</h1>
+      <h1 class="entry-title">Passenger Standalone on Ubuntu 11.10 (Oneiric Ocelot)</h1>
     
     
       <p class="meta">
@@ -74,22 +74,23 @@
 
 
 
-<time datetime="2011-09-20T20:16:00+01:00" pubdate  data-updated="true" >Sep 20<span>th</span>, 2011</time></p>
+<time datetime="2011-09-27T09:51:00+01:00" pubdate  data-updated="true" >Sep 27<span>th</span>, 2011</time></p>
     
   </header>
 
 
-<div class="entry-content"><p>The standard answer is that zip files can&#8217;t contain more than one copy of a file without containing more than one copy of a file.  In other words, there&#8217;s not a portable version of a *nix style hard link.</p>
+<div class="entry-content"><p>Until <a href="http://code.google.com/p/phusion-passenger/issues/detail?id=704">issue 704</a> is resolved, <a href="http://www.modrails.com/">Passenger Standalone</a> won&#8217;t compile properly on Ubuntu 11.10 (Oneirc Ocelot - currently pre-release) using the default settings.</p>
 
-<p>And that&#8217;s kind of true.  However it is theoretically possible to create valid zip files that violate this principle in a platform independant manner.  Unfortunately this doesn&#8217;t work properly with Stuffit :(</p>
+<p>To work around this, use GCC 4.4 instead.  You&#8217;ll need to install <code>gcc-4.4</code> and <code>libstdc++6-4.4-dev</code> and then specify GCC 4.4 at compile time using the CC environment variable.</p>
 
-<p>The data for a file entry must start immediately following the header, but the header can be upto ~65k and ends with fields that should be ignored if they are not understood.  So we can stuff a local file header inside the end of a parent local file header (and prefix 32 bytes of &#8220;unknown&#8221; extra field) so that we have two valid local file headers that each end immediately before the only copy of the file data, as pictured:</p>
+<div><figure role=code> <div class="highlight"><table cellpadding="0" cellspacing="0"><tr><td class="gutter"><pre class="line-numbers"><span class='line'>1</span>
+<span class='line'>2</span>
+</pre></td><td class='code' width='100%'><pre><code class='bash'><div class='line'><span class="nv">$ </span>sudo apt-get install gcc-4.4 libstdc++6-4.4-dev
+</div><div class='line'><span class="nv">$ CC</span><span class="o">=</span>gcc-4.4 passenger start
+</div></code></pre></td></tr></table></div></figure></div>
 
-<p><img alt="Stuffing headers inside headers like Russian Dolls" src="/media/diagram-4ef36d62870790b1334d7a1835e239d7.png" width="410" height="294"></p>
 
-<p>And then we add the entries to Central Directory as if they were normal file entries.</p>
-
-<p>Tests work fine with <a href="http://www.info-zip.org/">Info-ZIP</a>, <a href="http://www.7-zip.org">7-Zip</a> and the Windows built-in zip support.  Unfortunately Stuffit on OS X only appears to recognise the &#8220;normal&#8221; entries (ie. doesn&#8217;t extract the embedded headers).</p>
+<p>Hopefully this will help anyone else who&#8217;s updated to the latest Ubuntu pre-release and still wants to use Passenger Standalone.</p>
 </div>
 
 
@@ -110,12 +111,12 @@
 
 
 
-<time datetime="2011-09-20T20:16:00+01:00" pubdate  data-updated="true" >Sep 20<span>th</span>, 2011</time>
+<time datetime="2011-09-27T09:51:00+01:00" pubdate  data-updated="true" >Sep 27<span>th</span>, 2011</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/ruby/'>ruby</a>, <a class='category' href='/blog/categories/zip/'>zip</a>
+    <a class='category' href='/blog/categories/oneiric-/'>oneiric,</a>, <a class='category' href='/blog/categories/passenger/'>passenger</a>, <a class='category' href='/blog/categories/passenger-/'>passenger,</a>, <a class='category' href='/blog/categories/standalone-/'>standalone,</a>, <a class='category' href='/blog/categories/ubuntu-/'>ubuntu,</a>, <a class='category' href='/blog/categories/workarounds/'>workarounds</a>
   
 </span>
 
@@ -124,7 +125,7 @@
     
       <div class="sharing">
   
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls/" data-via="geoffyoungs" data-counturl="http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls/" >Tweet</a>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://geoffyoungs.github.com/blog/2011/09/27/passenger-standalone-on-ubuntu-11-dot-10-oneiric/" data-via="geoffyoungs" data-counturl="http://geoffyoungs.github.com/blog/2011/09/27/passenger-standalone-on-ubuntu-11-dot-10-oneiric/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>
