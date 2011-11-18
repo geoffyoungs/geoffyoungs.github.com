@@ -4,13 +4,271 @@
   <title>frafferz/geek</title>
   <link href="http://geoffyoungs.github.com/atom.xml" rel="self"/>
   <link href="http://geoffyoungs.github.com/"/>
-  <updated>2011-09-27T17:13:58+01:00</updated>
+  <updated>2011-11-18T16:18:32+00:00</updated>
   <id>http://geoffyoungs.github.com/</id>
   <author>
     <name>Geoff Youngs</name>
     
   </author>
 
+  
+  <entry>
+    <title>Method in the Madness: Ensure And Return</title>
+    <link href="http://geoffyoungs.github.com/blog/2011/11/18/ensure-and-return/"/>
+    <updated>2011-11-18T10:47:00+00:00</updated>
+    <id>http://geoffyoungs.github.com/blog/2011/11/18/ensure-and-return</id>
+    <content type="html">&lt;p&gt;Was pondering the question: what code runs when method level &lt;code&gt;rescue&lt;/code&gt;, &lt;code&gt;else&lt;/code&gt; and &lt;code&gt;ensure&lt;/code&gt; are used in ruby?&lt;/p&gt;
+
+&lt;h3&gt;TL;DR summary&lt;/h3&gt;
+
+&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
+&lt;span class='line'&gt;2&lt;/span&gt;
+&lt;span class='line'&gt;3&lt;/span&gt;
+&lt;span class='line'&gt;4&lt;/span&gt;
+&lt;span class='line'&gt;5&lt;/span&gt;
+&lt;span class='line'&gt;6&lt;/span&gt;
+&lt;span class='line'&gt;7&lt;/span&gt;
+&lt;span class='line'&gt;8&lt;/span&gt;
+&lt;span class='line'&gt;9&lt;/span&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;some_method&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;c1&quot;&gt;# main body&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;c1&quot;&gt;# rescue code&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;c1&quot;&gt;# alternative to rescue&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;c1&quot;&gt;# always run me last&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+
+
+&lt;ol&gt;
+&lt;li&gt;Without &lt;code&gt;return&lt;/code&gt; the last computed value that is not in the &lt;code&gt;ensure&lt;/code&gt; block is returned (this will either be the main body, the rescue block or the else block).&lt;/li&gt;
+&lt;li&gt;Using &lt;code&gt;return&lt;/code&gt; in the main body of the method means that &lt;code&gt;else&lt;/code&gt; block doesn't run.&lt;/li&gt;
+&lt;li&gt;Using &lt;code&gt;return&lt;/code&gt; in an &lt;code&gt;ensure&lt;/code&gt; block always overrides any other value returned by the method, regardless of whether any other section of the method also used the &lt;code&gt;return&lt;/code&gt; keyword.&lt;/li&gt;
+&lt;li&gt;Values from an &lt;code&gt;ensure&lt;/code&gt; block are only ever returned when the &lt;code&gt;return&lt;/code&gt; keyword is used.&lt;/li&gt;
+&lt;/ol&gt;
+
+
+&lt;h3&gt;Simple function:&lt;/h3&gt;
+
+&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
+&lt;span class='line'&gt;2&lt;/span&gt;
+&lt;span class='line'&gt;3&lt;/span&gt;
+&lt;span class='line'&gt;4&lt;/span&gt;
+&lt;span class='line'&gt;5&lt;/span&gt;
+&lt;span class='line'&gt;6&lt;/span&gt;
+&lt;span class='line'&gt;7&lt;/span&gt;
+&lt;span class='line'&gt;8&lt;/span&gt;
+&lt;span class='line'&gt;9&lt;/span&gt;
+&lt;span class='line'&gt;10&lt;/span&gt;
+&lt;span class='line'&gt;11&lt;/span&gt;
+&lt;span class='line'&gt;12&lt;/span&gt;
+&lt;span class='line'&gt;13&lt;/span&gt;
+&lt;span class='line'&gt;14&lt;/span&gt;
+&lt;span class='line'&gt;15&lt;/span&gt;
+&lt;span class='line'&gt;16&lt;/span&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;ran &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fn1&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:fn1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:rescue1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:else1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:ensure1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;n&quot;&gt;fn1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; :else1&lt;/span&gt;
+&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Output:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ran fn1
+ran else1
+ran ensure1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Function with error:&lt;/h3&gt;
+
+&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
+&lt;span class='line'&gt;2&lt;/span&gt;
+&lt;span class='line'&gt;3&lt;/span&gt;
+&lt;span class='line'&gt;4&lt;/span&gt;
+&lt;span class='line'&gt;5&lt;/span&gt;
+&lt;span class='line'&gt;6&lt;/span&gt;
+&lt;span class='line'&gt;7&lt;/span&gt;
+&lt;span class='line'&gt;8&lt;/span&gt;
+&lt;span class='line'&gt;9&lt;/span&gt;
+&lt;span class='line'&gt;10&lt;/span&gt;
+&lt;span class='line'&gt;11&lt;/span&gt;
+&lt;span class='line'&gt;12&lt;/span&gt;
+&lt;span class='line'&gt;13&lt;/span&gt;
+&lt;span class='line'&gt;14&lt;/span&gt;
+&lt;span class='line'&gt;15&lt;/span&gt;
+&lt;span class='line'&gt;16&lt;/span&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;ran &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fn2&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:fn2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:rescue2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:else2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:ensure2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;n&quot;&gt;fn2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; :rescue2&lt;/span&gt;
+&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Output:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ran fn2
+ran rescue2
+ran ensure2
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Function with return in main body&lt;/h3&gt;
+
+&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
+&lt;span class='line'&gt;2&lt;/span&gt;
+&lt;span class='line'&gt;3&lt;/span&gt;
+&lt;span class='line'&gt;4&lt;/span&gt;
+&lt;span class='line'&gt;5&lt;/span&gt;
+&lt;span class='line'&gt;6&lt;/span&gt;
+&lt;span class='line'&gt;7&lt;/span&gt;
+&lt;span class='line'&gt;8&lt;/span&gt;
+&lt;span class='line'&gt;9&lt;/span&gt;
+&lt;span class='line'&gt;10&lt;/span&gt;
+&lt;span class='line'&gt;11&lt;/span&gt;
+&lt;span class='line'&gt;12&lt;/span&gt;
+&lt;span class='line'&gt;13&lt;/span&gt;
+&lt;span class='line'&gt;14&lt;/span&gt;
+&lt;span class='line'&gt;15&lt;/span&gt;
+&lt;span class='line'&gt;16&lt;/span&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;ran &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fn3&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:fn3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:rescue3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:else3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:ensure3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;n&quot;&gt;fn3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; :fn3&lt;/span&gt;
+&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Output:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ran fn3
+ran ensure3
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Function with return in main body and return in ensure block&lt;/h3&gt;
+
+&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
+&lt;span class='line'&gt;2&lt;/span&gt;
+&lt;span class='line'&gt;3&lt;/span&gt;
+&lt;span class='line'&gt;4&lt;/span&gt;
+&lt;span class='line'&gt;5&lt;/span&gt;
+&lt;span class='line'&gt;6&lt;/span&gt;
+&lt;span class='line'&gt;7&lt;/span&gt;
+&lt;span class='line'&gt;8&lt;/span&gt;
+&lt;span class='line'&gt;9&lt;/span&gt;
+&lt;span class='line'&gt;10&lt;/span&gt;
+&lt;span class='line'&gt;11&lt;/span&gt;
+&lt;span class='line'&gt;12&lt;/span&gt;
+&lt;span class='line'&gt;13&lt;/span&gt;
+&lt;span class='line'&gt;14&lt;/span&gt;
+&lt;span class='line'&gt;15&lt;/span&gt;
+&lt;span class='line'&gt;16&lt;/span&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;ran &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fn4&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:fn4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:rescue4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:else4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:ensure4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;n&quot;&gt;fn4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; :ensure4&lt;/span&gt;
+&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Output:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ran fn4
+ran ensure4
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;Function with return in main body and in ensure and error raised&lt;/h3&gt;
+
+&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
+&lt;span class='line'&gt;2&lt;/span&gt;
+&lt;span class='line'&gt;3&lt;/span&gt;
+&lt;span class='line'&gt;4&lt;/span&gt;
+&lt;span class='line'&gt;5&lt;/span&gt;
+&lt;span class='line'&gt;6&lt;/span&gt;
+&lt;span class='line'&gt;7&lt;/span&gt;
+&lt;span class='line'&gt;8&lt;/span&gt;
+&lt;span class='line'&gt;9&lt;/span&gt;
+&lt;span class='line'&gt;10&lt;/span&gt;
+&lt;span class='line'&gt;11&lt;/span&gt;
+&lt;span class='line'&gt;12&lt;/span&gt;
+&lt;span class='line'&gt;13&lt;/span&gt;
+&lt;span class='line'&gt;14&lt;/span&gt;
+&lt;span class='line'&gt;15&lt;/span&gt;
+&lt;span class='line'&gt;16&lt;/span&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;ran &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fn5&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:fn5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:rescue5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:else5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:ensure5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/div&gt;&lt;div class='line'&gt;
+&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;n&quot;&gt;fn5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; :ensure5&lt;/span&gt;
+&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Output:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ran fn5
+ran rescue5
+ran ensure5
+&lt;/code&gt;&lt;/pre&gt;
+</content>
+  </entry>
   
   <entry>
     <title>Passenger Standalone on Ubuntu 11.10 (Oneiric Ocelot)</title>
