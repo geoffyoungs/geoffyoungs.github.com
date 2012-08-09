@@ -5,10 +5,8 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: standalone, - frafferz/geek</title>
+  <title>Ruby Utils - frafferz/geek</title>
   <meta name="author" content="Geoff Youngs">
-  
-    <meta name="description" content="Category: standalone,"/>
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +16,7 @@
 
   
 
-  <link rel="canonical" href="http://geoffyoungs.github.comblog/categories/standalone-/index.html"/>
+  <link rel="canonical" href="http://geoffyoungs.github.com/blog/2012/08/09/ruby-utils/"/>
   <link href="/favicon.png" rel="shortcut icon" />
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <script src="/javascripts/modernizr-2.0.js"></script>
@@ -60,35 +58,112 @@
   <div id="main">
     <div id="content">
       <div>
-<article>
+<article class="hentry">
   
   <header>
-    <h1 class="entry-title">Category: Standalone,</h1>
+    
+      <h1 class="entry-title">Ruby Utils</h1>
+    
+    
+      <p class="meta">
+
+
+
+
+
+  
+
+
+
+<time datetime="2012-08-09T17:24:00+01:00" pubdate  data-updated="true" >Aug 9<span>th</span>, 2012</time></p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><p>The <code>#to_proc</code> method is pretty useful - it allows all sorts of
+niceness, such as</p>
 
-  
-  <h2>2011</h2>
-
-<article>
-  
-<h1><a href="/blog/2011/09/27/passenger-standalone-on-ubuntu-11-dot-10-oneiric/">Passenger Standalone on Ubuntu 11.10 (Oneiric Ocelot)</a></h1>
-<time datetime="2011-09-27T09:51:00+01:00" pubdate><span class='month'>Sep</span> <span class='day'>27</span> <span class='year'>2011</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/blog/categories/oneiric-/'>oneiric,</a>, <a class='category' href='/blog/categories/passenger/'>passenger</a>, <a class='category' href='/blog/categories/passenger-/'>passenger,</a>, <a class='category' href='/blog/categories/standalone-/'>standalone,</a>, <a class='category' href='/blog/categories/ubuntu-/'>ubuntu,</a>, <a class='category' href='/blog/categories/workarounds/'>workarounds</a></span>
-</footer>
+<div><figure role=code> <div class="highlight"><table cellpadding="0" cellspacing="0"><tr><td class="gutter"><pre class="line-numbers"><span class='line'>1</span>
+</pre></td><td class='code' width='100%'><pre><code class='ruby'><div class='line'><span class="o">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">13</span><span class="o">].</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:to_s</span><span class="p">)</span> <span class="c1">#=&gt; [&quot;11&quot;,&quot;12&quot;,&quot;13&quot;]`</span>
+</div></code></pre></td></tr></table></div></figure></div>
 
 
-</article>
+<p>This works by calling <code>Symbol#to_proc</code>, which is defined something like:</p>
+
+<div><figure role=code> <div class="highlight"><table cellpadding="0" cellspacing="0"><tr><td class="gutter"><pre class="line-numbers"><span class='line'>1</span>
+<span class='line'>2</span>
+<span class='line'>3</span>
+</pre></td><td class='code' width='100%'><pre><code class='ruby'><div class='line'><span class="k">def</span> <span class="nf">to_proc</span>
+</div><div class='line'>  <span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">object</span><span class="o">|</span> <span class="n">object</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="p">}</span>
+</div><div class='line'><span class="k">end</span>
+</div></code></pre></td></tr></table></div></figure></div>
+
+
+<p>But what about if you want to pass arguments to the function?  Suppose
+you wanted to call <code>#to_s(16)</code> on each element in the array?</p>
+
+<p>If you still want the compact formulation, you can add a <code>[]</code> method to the Symbol:</p>
+
+<div><figure role=code> <div class="highlight"><table cellpadding="0" cellspacing="0"><tr><td class="gutter"><pre class="line-numbers"><span class='line'>1</span>
+<span class='line'>2</span>
+<span class='line'>3</span>
+<span class='line'>4</span>
+<span class='line'>5</span>
+</pre></td><td class='code' width='100%'><pre><code class='ruby'><div class='line'><span class="k">class</span> <span class="nc">Symbol</span>
+</div><div class='line'>  <span class="k">def</span> <span class="nf">[]</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+</div><div class='line'>    <span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">o</span><span class="o">|</span> <span class="n">o</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="p">}</span>
+</div><div class='line'>  <span class="k">end</span>
+</div><div class='line'><span class="k">end</span>
+</div></code></pre></td></tr></table></div></figure></div>
+
+
+<p>which means that you can use stuff like this:</p>
+
+<div><figure role=code> <div class="highlight"><table cellpadding="0" cellspacing="0"><tr><td class="gutter"><pre class="line-numbers"><span class='line'>1</span>
+<span class='line'>2</span>
+</pre></td><td class='code' width='100%'><pre><code class='ruby'><div class='line'><span class="o">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">13</span><span class="o">].</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:to_s</span><span class="o">[</span><span class="mi">16</span><span class="o">]</span><span class="p">)</span> <span class="c1">#=&gt; [&quot;b&quot;,&quot;c&quot;,&quot;d&quot;]`</span>
+</div><div class='line'><span class="o">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">13</span><span class="o">].</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:*</span><span class="o">[</span><span class="mi">2</span><span class="o">]</span><span class="p">)</span> <span class="c1">#=&gt; [22, 24, 26]</span>
+</div></code></pre></td></tr></table></div></figure></div>
+
+
 
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">Geoff Youngs</span></span>
+
+      
+
+
+
+
+
+  
+
+
+
+<time datetime="2012-08-09T17:24:00+01:00" pubdate  data-updated="true" >Aug 9<span>th</span>, 2012</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://geoffyoungs.github.com/blog/2012/08/09/ruby-utils/" data-via="geoffyoungs" data-counturl="http://geoffyoungs.github.com/blog/2012/08/09/ruby-utils/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+</div>
+
+    
+  </footer>
 </article>
 
 </div>

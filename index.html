@@ -65,6 +65,83 @@
     
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2012/08/09/ruby-utils/">Ruby Utils</a></h1>
+    
+    
+      <p class="meta">
+
+
+
+
+
+  
+
+
+
+<time datetime="2012-08-09T17:24:00+01:00" pubdate  data-updated="true" >Aug 9<span>th</span>, 2012</time></p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The <code>#to_proc</code> method is pretty useful - it allows all sorts of
+niceness, such as</p>
+
+<div><figure role=code> <div class="highlight"><table cellpadding="0" cellspacing="0"><tr><td class="gutter"><pre class="line-numbers"><span class='line'>1</span>
+</pre></td><td class='code' width='100%'><pre><code class='ruby'><div class='line'><span class="o">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">13</span><span class="o">].</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:to_s</span><span class="p">)</span> <span class="c1">#=&gt; [&quot;11&quot;,&quot;12&quot;,&quot;13&quot;]`</span>
+</div></code></pre></td></tr></table></div></figure></div>
+
+
+<p>This works by calling <code>Symbol#to_proc</code>, which is defined something like:</p>
+
+<div><figure role=code> <div class="highlight"><table cellpadding="0" cellspacing="0"><tr><td class="gutter"><pre class="line-numbers"><span class='line'>1</span>
+<span class='line'>2</span>
+<span class='line'>3</span>
+</pre></td><td class='code' width='100%'><pre><code class='ruby'><div class='line'><span class="k">def</span> <span class="nf">to_proc</span>
+</div><div class='line'>  <span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">object</span><span class="o">|</span> <span class="n">object</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="p">}</span>
+</div><div class='line'><span class="k">end</span>
+</div></code></pre></td></tr></table></div></figure></div>
+
+
+<p>But what about if you want to pass arguments to the function?  Suppose
+you wanted to call <code>#to_s(16)</code> on each element in the array?</p>
+
+<p>If you still want the compact formulation, you can add a <code>[]</code> method to the Symbol:</p>
+
+<div><figure role=code> <div class="highlight"><table cellpadding="0" cellspacing="0"><tr><td class="gutter"><pre class="line-numbers"><span class='line'>1</span>
+<span class='line'>2</span>
+<span class='line'>3</span>
+<span class='line'>4</span>
+<span class='line'>5</span>
+</pre></td><td class='code' width='100%'><pre><code class='ruby'><div class='line'><span class="k">class</span> <span class="nc">Symbol</span>
+</div><div class='line'>  <span class="k">def</span> <span class="nf">[]</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+</div><div class='line'>    <span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">o</span><span class="o">|</span> <span class="n">o</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="p">}</span>
+</div><div class='line'>  <span class="k">end</span>
+</div><div class='line'><span class="k">end</span>
+</div></code></pre></td></tr></table></div></figure></div>
+
+
+<p>which means that you can use stuff like this:</p>
+
+<div><figure role=code> <div class="highlight"><table cellpadding="0" cellspacing="0"><tr><td class="gutter"><pre class="line-numbers"><span class='line'>1</span>
+<span class='line'>2</span>
+</pre></td><td class='code' width='100%'><pre><code class='ruby'><div class='line'><span class="o">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">13</span><span class="o">].</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:to_s</span><span class="o">[</span><span class="mi">16</span><span class="o">]</span><span class="p">)</span> <span class="c1">#=&gt; [&quot;b&quot;,&quot;c&quot;,&quot;d&quot;]`</span>
+</div><div class='line'><span class="o">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">13</span><span class="o">].</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:*</span><span class="o">[</span><span class="mi">2</span><span class="o">]</span><span class="p">)</span> <span class="c1">#=&gt; [22, 24, 26]</span>
+</div></code></pre></td></tr></table></div></figure></div>
+
+
+
+</div>
+  
+  
+
+
+  </article>
+
+
+  <article>
+    
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2011/11/18/ensure-and-return/">Method in the Madness: Ensure and Return</a></h1>
     
     
@@ -525,6 +602,10 @@ ran ensure5
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2012/08/09/ruby-utils/">Ruby Utils</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2011/11/18/ensure-and-return/">Method in the Madness: Ensure And Return</a>
       </li>
     
@@ -598,7 +679,7 @@ ran ensure5
     </div>
   </div>
   <footer><p>
-  Copyright &copy; 2011 - Geoff Youngs -
+  Copyright &copy; 2012 - Geoff Youngs -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
