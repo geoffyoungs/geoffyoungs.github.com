@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: zip | frafferz/geek]]></title>
+  <link href="http://geoffyoungs.github.com/blog/categories/zip/atom.xml" rel="self"/>
+  <link href="http://geoffyoungs.github.com/"/>
+  <updated>2013-02-08T17:14:28+00:00</updated>
+  <id>http://geoffyoungs.github.com/</id>
+  <author>
+    <name><![CDATA[Geoff Youngs]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Playing With Zip - Russian Dolls]]></title>
+    <link href="http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls/"/>
+    <updated>2011-09-20T20:16:00+01:00</updated>
+    <id>http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls</id>
+    <content type="html"><![CDATA[<p>The standard answer is that zip files can't contain more than one copy of a file without containing more than one copy of a file.  In other words, there's not a portable version of a *nix style hard link.</p>
+
+<p>And that's kind of true.  However it is theoretically possible to create valid zip files that violate this principle in a platform independant manner.  Unfortunately this doesn't work properly with Stuffit :(</p>
+
+<p>The data for a file entry must start immediately following the header, but the header can be upto ~65k and ends with fields that should be ignored if they are not understood.  So we can stuff a local file header inside the end of a parent local file header (and prefix 32 bytes of "unknown" extra field) so that we have two valid local file headers that each end immediately before the only copy of the file data, as pictured:</p>
+
+<p><img alt="Stuffing headers inside headers like Russian Dolls" src="/media/diagram-adde8d1472256315a614b8f4b92cd751.png" width="430" height="294"></p>
+
+<p>And then we add the entries to Central Directory as if they were normal file entries.</p>
+
+<p>Tests work fine with <a href="http://www.info-zip.org/">Info-ZIP</a>, <a href="http://www.7-zip.org">7-Zip</a> and the Windows built-in zip support.  Unfortunately Stuffit on OS X only appears to recognise the "normal" entries (ie. doesn't extract the embedded headers).</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Playing With Zip]]></title>
+    <link href="http://geoffyoungs.github.com/blog/2011/09/05/playing-with-zip/"/>
+    <updated>2011-09-05T18:36:00+01:00</updated>
+    <id>http://geoffyoungs.github.com/blog/2011/09/05/playing-with-zip</id>
+    <content type="html"><![CDATA[<p>I wanted to stream zip files with lots of JPEGs in.  Hundreds of JPEGs from digital cameras and, being as they were JPEGs, didn't really care about trying to compress them any further.</p>
+
+<ol>
+<li>I wanted to create (potentially) huge archives.  So I'd need something that supported ZIP64 extensions.</li>
+<li>I wanted to mix local files and files streamed from internal web servers.</li>
+<li>I wanted to create a zip file on the fly, with minimal buffering, to minimize disk and memory requirements.</li>
+<li>I wanted to support large numbers of simultaneous downloads.</li>
+<li>I also wanted (if possible) to efficiently include the same file more than once in an archive with different filenames.</li>
+<li>I wanted to continue to use zip archives.</li>
+</ol>
+
+
+<p>Simples?</p>
+
+<p>If only.</p>
+
+<h3>Streaming ZIP64 support (or lack thereof)</h3>
+
+<p>There are several ruby zip libraries, e.g. <a href="http://rubyzip.sourceforge.net/">rubyzip</a>, <a href="https://bitbucket.org/winebarrel/zip-ruby/wiki/Home">zip-ruby</a> and <a href="https://github.com/javanthropus/archive-zip">archive-zip</a> - but they seem to fall into two camps: pure ruby with no ZIP64 or wrapping a C library (e.g. libzip) but with no obvious way to create a zip file and start streaming it before it's complete.</p>
+
+<p>So I indulged my NIH syndrome reflex and wrote <a href="https://github.com/geoffyoungs/zip64writer">zip64writer</a> which streams zip files and can automatically starts using ZIP64 extensions when needed. (I did look at adding ZIP64 support to rubyzip, but I figured fairly quickly that it would be easier to roll a specifically targetted library than adapt it to my needs.)</p>
+
+<p>So writing a zip file to a stream works something like:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;zip64/writer&#39;</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;File.open(&quot;output.zip&quot;, &quot;wb&quot;) do |fp|&lt;/</span><span class="nb">p</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="ss">Zip64</span><span class="p">:</span><span class="ss">:ZipWriter</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">zip</span><span class="o">|</span>
+</span><span class='line'>    <span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;sample.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">rfp</span><span class="o">|</span>
+</span><span class='line'>        <span class="n">zip</span><span class="o">.</span><span class="n">add_entry</span><span class="p">(</span><span class="n">rfp</span><span class="p">,</span>
+</span><span class='line'>                <span class="ss">:mtime</span> <span class="o">=&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+</span><span class='line'>                <span class="ss">:name</span> <span class="o">=&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="s1">&#39;myphoto.jpg&#39;</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'><span class="k">end</span> <span class="c1"># Implicit close writes central directory to stream</span>
+</span><span class='line'><span class="o">&lt;</span><span class="sr">/code&gt;&lt;/</span><span class="n">pre</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">&lt;</span><span class="nb">p</span><span class="o">&gt;</span><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>ZIP64 extensions are extra header fields, and an extra couple of blocks at the end of the zip file, which allow zip files to contain more than 65,535 entries (the limit of a 16bit integer) &amp; for the zip archives (and the files inside them) to be greater than 4 Gb (the limit of a 32bit integer) in size.</p>
+
+<p><img alt="ASCII Art Diagram" src="/media/diagram-c2e1ed937e7c10f5ca01b527023d85f1.png" width="530" height="266"></p>
+
+<p>The writer detects when an offset requires a 64bit integer (ie. offset >4Gb) and automatically starts using ZIP64 extensions - so the files are still as compatible as possible with old zip implementations that don't support ZIP64 (e.g. Windows XP shell).</p>
+
+<p>Basic testing reveals that ZIP64 files created this way (ie. a mix of standard encoding and ZIP64 encoding) work fine on Windows 7, OS X 10.5+.  (Also the version of file-roller shipped with Lucid Lynx opens them fine, although the version of zip shipped with Hardy Heron is too old.)</p>
+]]></content>
+  </entry>
+  
+</feed>

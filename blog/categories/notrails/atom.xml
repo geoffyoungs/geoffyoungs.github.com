@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: NotRails | frafferz/geek]]></title>
+  <link href="http://geoffyoungs.github.com/blog/categories/notrails/atom.xml" rel="self"/>
+  <link href="http://geoffyoungs.github.com/"/>
+  <updated>2013-02-08T17:14:28+00:00</updated>
+  <id>http://geoffyoungs.github.com/</id>
+  <author>
+    <name><![CDATA[Geoff Youngs]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[ActiveRecord::QueryCache and Rack speed]]></title>
+    <link href="http://geoffyoungs.github.com/blog/2013/02/08/activerecord-querycache-and-rack-speed/"/>
+    <updated>2013-02-08T15:39:00+00:00</updated>
+    <id>http://geoffyoungs.github.com/blog/2013/02/08/activerecord-querycache-and-rack-speed</id>
+    <content type="html"><![CDATA[<p>Ignore this unless you're using a Rack handler and ActiveRecord.</p>
+
+<p>If you're using a vanilla rack handler or <a href="https://github.com/intridea/grape">Grape</a> or <a href="https://github.com/geoffyoungs/jsonrpc2">JSONRPC2</a> or something similar that accesses your database via ActiveRecord, and you're mounting it directly in Rack
+you'll probably benefit from using the <a href="http://api.rubyonrails.org/classes/ActiveRecord/QueryCache.html">ActiveRecord::QueryCache</a>.  Unless you're going through the rails stack, you don't get this for free - you have to ask.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="n">use</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:QueryCache</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>It's just a standard piece of Rack Middleware, but it turns on DB
+caching for the duration of the request.</p>
+
+<p>e.g.
+<div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;map &#39;/</span><span class="n">foo</span><span class="o">/</span><span class="n">bar</span><span class="err">&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">use</span> <span class="ss">Rack</span><span class="p">:</span><span class="ss">:Logger</span>
+</span><span class='line'>  <span class="n">use</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:QueryCache</span> <span class="c1"># &amp;lt;-- this increased the speed of my API calls by ~20%</span>
+</span><span class='line'>  <span class="n">run</span> <span class="no">MyRackHandler</span>
+</span><span class='line'><span class="k">end</span><span class="o">&lt;</span><span class="sr">/p&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="sr">&lt;p&gt;</span>
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+]]></content>
+  </entry>
+  
+</feed>

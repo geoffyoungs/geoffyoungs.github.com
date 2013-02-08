@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: workarounds | frafferz/geek]]></title>
+  <link href="http://geoffyoungs.github.com/blog/categories/workarounds/atom.xml" rel="self"/>
+  <link href="http://geoffyoungs.github.com/"/>
+  <updated>2013-02-08T17:14:28+00:00</updated>
+  <id>http://geoffyoungs.github.com/</id>
+  <author>
+    <name><![CDATA[Geoff Youngs]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Passenger Standalone on Ubuntu 11.10 (Oneiric Ocelot)]]></title>
+    <link href="http://geoffyoungs.github.com/blog/2011/09/27/passenger-standalone-on-ubuntu-11-dot-10-oneiric/"/>
+    <updated>2011-09-27T09:51:00+01:00</updated>
+    <id>http://geoffyoungs.github.com/blog/2011/09/27/passenger-standalone-on-ubuntu-11-dot-10-oneiric</id>
+    <content type="html"><![CDATA[<p>Until <a href="http://code.google.com/p/phusion-passenger/issues/detail?id=704">issue 704</a> is resolved, <a href="http://www.modrails.com/">Passenger Standalone</a> won't compile properly on Ubuntu 11.10 (Oneirc Ocelot - currently pre-release) using the default settings.</p>
+
+<p>To work around this, use GCC 4.4 instead.  You'll need to install <code>gcc-4.4</code> and <code>libstdc++6-4.4-dev</code> and then specify GCC 4.4 at compile time using the CC environment variable.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>sudo apt-get install gcc-4.4 libstdc++6-4.4-dev
+</span><span class='line'><span class="nv">$ CC</span><span class="o">=</span>gcc-4.4 passenger start
+</span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Hopefully this will help anyone else who's updated to the latest Ubuntu pre-release and still wants to use Passenger Standalone.</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,431 +1,469 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title>frafferz/geek</title>
+  <title><![CDATA[frafferz/geek]]></title>
   <link href="http://geoffyoungs.github.com/atom.xml" rel="self"/>
   <link href="http://geoffyoungs.github.com/"/>
-  <updated>2012-08-09T17:38:14+01:00</updated>
+  <updated>2013-02-08T17:14:28+00:00</updated>
   <id>http://geoffyoungs.github.com/</id>
   <author>
-    <name>Geoff Youngs</name>
+    <name><![CDATA[Geoff Youngs]]></name>
     
   </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
 
   
   <entry>
-    <title>Ruby Utils</title>
+    <title type="html"><![CDATA[ActiveRecord::QueryCache and Rack speed]]></title>
+    <link href="http://geoffyoungs.github.com/blog/2013/02/08/activerecord-querycache-and-rack-speed/"/>
+    <updated>2013-02-08T15:39:00+00:00</updated>
+    <id>http://geoffyoungs.github.com/blog/2013/02/08/activerecord-querycache-and-rack-speed</id>
+    <content type="html"><![CDATA[<p>Ignore this unless you&#8217;re using a Rack handler and ActiveRecord.</p>
+
+<p>If you&#8217;re using a vanilla rack handler or <a href="https://github.com/intridea/grape">Grape</a> or <a href="https://github.com/geoffyoungs/jsonrpc2">JSONRPC2</a> or something similar that accesses your database via ActiveRecord, and you&#8217;re mounting it directly in Rack
+you&#8217;ll probably benefit from using the <a href="http://api.rubyonrails.org/classes/ActiveRecord/QueryCache.html">ActiveRecord::QueryCache</a>.  Unless you&#8217;re going through the rails stack, you don&#8217;t get this for free - you have to ask.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="n">use</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:QueryCache</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It&#8217;s just a standard piece of Rack Middleware, but it turns on DB
+caching for the duration of the request.</p>
+
+<p>e.g.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">map</span> <span class="s1">&#39;/foo/bar&#39;</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">use</span> <span class="ss">Rack</span><span class="p">:</span><span class="ss">:Logger</span>
+</span><span class='line'>  <span class="n">use</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:QueryCache</span> <span class="c1"># &lt;-- this increased the speed of my API calls by ~20%</span>
+</span><span class='line'>  <span class="n">run</span> <span class="no">MyRackHandler</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Ruby Utils]]></title>
     <link href="http://geoffyoungs.github.com/blog/2012/08/09/ruby-utils/"/>
     <updated>2012-08-09T17:24:00+01:00</updated>
     <id>http://geoffyoungs.github.com/blog/2012/08/09/ruby-utils</id>
-    <content type="html">&lt;p&gt;The &lt;code&gt;#to_proc&lt;/code&gt; method is pretty useful - it allows all sorts of
-niceness, such as&lt;/p&gt;
+    <content type="html"><![CDATA[<p>The <code>#to_proc</code> method is pretty useful - it allows all sorts of
+niceness, such as</p>
 
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;11&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:to_s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; [&amp;quot;11&amp;quot;,&amp;quot;12&amp;quot;,&amp;quot;13&amp;quot;]`&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
-
-
-&lt;p&gt;This works by calling &lt;code&gt;Symbol#to_proc&lt;/code&gt;, which is defined something like:&lt;/p&gt;
-
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;span class='line'&gt;3&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;to_proc&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;  &lt;span class=&quot;nb&quot;&gt;lambda&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">13</span><span class="o">].</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:to_s</span><span class="p">)</span> <span class="c1">#=&gt; [&quot;11&quot;,&quot;12&quot;,&quot;13&quot;]`</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-&lt;p&gt;But what about if you want to pass arguments to the function?  Suppose
-you wanted to call &lt;code&gt;#to_s(16)&lt;/code&gt; on each element in the array?&lt;/p&gt;
+<p>This works by calling <code>Symbol#to_proc</code>, which is defined something like:</p>
 
-&lt;p&gt;If you still want the compact formulation, you can add a &lt;code&gt;[]&lt;/code&gt; method to the Symbol:&lt;/p&gt;
-
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;span class='line'&gt;3&lt;/span&gt;
-&lt;span class='line'&gt;4&lt;/span&gt;
-&lt;span class='line'&gt;5&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Symbol&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;  &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;[]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;lambda&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;o&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;o&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;  &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">to_proc</span>
+</span><span class='line'>  <span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">object</span><span class="o">|</span> <span class="n">object</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="p">}</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-&lt;p&gt;which means that you can use stuff like this:&lt;/p&gt;
+<p>But what about if you want to pass arguments to the function?  Suppose
+you wanted to call <code>#to_s(16)</code> on each element in the array?</p>
 
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;11&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:to_s&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;16&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; [&amp;quot;b&amp;quot;,&amp;quot;c&amp;quot;,&amp;quot;d&amp;quot;]`&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;11&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; [22, 24, 26]&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+<p>If you still want the compact formulation, you can add a <code>[]</code> method to the Symbol:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Symbol</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">[]</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">o</span><span class="o">|</span> <span class="n">o</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="nb">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="p">}</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>which means that you can use stuff like this:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">13</span><span class="o">].</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:to_s</span><span class="o">[</span><span class="mi">16</span><span class="o">]</span><span class="p">)</span> <span class="c1">#=&gt; [&quot;b&quot;,&quot;c&quot;,&quot;d&quot;]`</span>
+</span><span class='line'><span class="o">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">13</span><span class="o">].</span><span class="n">map</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:*</span><span class="o">[</span><span class="mi">2</span><span class="o">]</span><span class="p">)</span> <span class="c1">#=&gt; [22, 24, 26]</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
 
-</content>
+]]></content>
   </entry>
   
   <entry>
-    <title>Method in the Madness: Ensure And Return</title>
+    <title type="html"><![CDATA[Method in the Madness: Ensure And Return]]></title>
     <link href="http://geoffyoungs.github.com/blog/2011/11/18/ensure-and-return/"/>
     <updated>2011-11-18T10:47:00+00:00</updated>
     <id>http://geoffyoungs.github.com/blog/2011/11/18/ensure-and-return</id>
-    <content type="html">&lt;p&gt;Was pondering the question: what code runs when method level &lt;code&gt;rescue&lt;/code&gt;, &lt;code&gt;else&lt;/code&gt; and &lt;code&gt;ensure&lt;/code&gt; are used in ruby?&lt;/p&gt;
+    <content type="html"><![CDATA[<p>Was pondering the question: what code runs when method level <code>rescue</code>, <code>else</code> and <code>ensure</code> are used in ruby?</p>
 
-&lt;h3&gt;TL;DR summary&lt;/h3&gt;
+<h3>TL;DR summary</h3>
 
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;span class='line'&gt;3&lt;/span&gt;
-&lt;span class='line'&gt;4&lt;/span&gt;
-&lt;span class='line'&gt;5&lt;/span&gt;
-&lt;span class='line'&gt;6&lt;/span&gt;
-&lt;span class='line'&gt;7&lt;/span&gt;
-&lt;span class='line'&gt;8&lt;/span&gt;
-&lt;span class='line'&gt;9&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;some_method&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;c1&quot;&gt;# main body&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;c1&quot;&gt;# rescue code&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;c1&quot;&gt;# alternative to rescue&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;c1&quot;&gt;# always run me last&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
-
-
-&lt;ol&gt;
-&lt;li&gt;Without &lt;code&gt;return&lt;/code&gt; the last computed value that is not in the &lt;code&gt;ensure&lt;/code&gt; block is returned (this will either be the main body, the rescue block or the else block).&lt;/li&gt;
-&lt;li&gt;Using &lt;code&gt;return&lt;/code&gt; in the main body of the method means that &lt;code&gt;else&lt;/code&gt; block doesn't run.&lt;/li&gt;
-&lt;li&gt;Using &lt;code&gt;return&lt;/code&gt; in an &lt;code&gt;ensure&lt;/code&gt; block always overrides any other value returned by the method, regardless of whether any other section of the method also used the &lt;code&gt;return&lt;/code&gt; keyword.&lt;/li&gt;
-&lt;li&gt;Values from an &lt;code&gt;ensure&lt;/code&gt; block are only ever returned when the &lt;code&gt;return&lt;/code&gt; keyword is used.&lt;/li&gt;
-&lt;/ol&gt;
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">some_method</span>
+</span><span class='line'>  <span class="c1"># main body</span>
+</span><span class='line'><span class="k">rescue</span>
+</span><span class='line'>  <span class="c1"># rescue code</span>
+</span><span class='line'><span class="k">else</span>
+</span><span class='line'>  <span class="c1"># alternative to rescue</span>
+</span><span class='line'><span class="k">ensure</span>
+</span><span class='line'>  <span class="c1"># always run me last</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-&lt;h3&gt;Simple function:&lt;/h3&gt;
-
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;span class='line'&gt;3&lt;/span&gt;
-&lt;span class='line'&gt;4&lt;/span&gt;
-&lt;span class='line'&gt;5&lt;/span&gt;
-&lt;span class='line'&gt;6&lt;/span&gt;
-&lt;span class='line'&gt;7&lt;/span&gt;
-&lt;span class='line'&gt;8&lt;/span&gt;
-&lt;span class='line'&gt;9&lt;/span&gt;
-&lt;span class='line'&gt;10&lt;/span&gt;
-&lt;span class='line'&gt;11&lt;/span&gt;
-&lt;span class='line'&gt;12&lt;/span&gt;
-&lt;span class='line'&gt;13&lt;/span&gt;
-&lt;span class='line'&gt;14&lt;/span&gt;
-&lt;span class='line'&gt;15&lt;/span&gt;
-&lt;span class='line'&gt;16&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;ran &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fn1&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:fn1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:rescue1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:else1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:ensure1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;n&quot;&gt;fn1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; :else1&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+<ol>
+<li>Without <code>return</code> the last computed value that is not in the <code>ensure</code> block is returned (this will either be the main body, the rescue block or the else block).</li>
+<li>Using <code>return</code> in the main body of the method means that <code>else</code> block doesn&#8217;t run.</li>
+<li>Using <code>return</code> in an <code>ensure</code> block always overrides any other value returned by the method, regardless of whether any other section of the method also used the <code>return</code> keyword.</li>
+<li>Values from an <code>ensure</code> block are only ever returned when the <code>return</code> keyword is used.</li>
+</ol>
 
 
-&lt;p&gt;Output:&lt;/p&gt;
+<h3>Simple function:</h3>
 
-&lt;pre&gt;&lt;code&gt;ran fn1
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="n">sym</span><span class="p">)</span>
+</span><span class='line'>  <span class="nb">puts</span><span class="p">(</span><span class="s2">&quot;ran </span><span class="si">#{</span><span class="n">sym</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">sym</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">fn1</span>
+</span><span class='line'>  <span class="n">value</span><span class="p">(</span><span class="ss">:fn1</span><span class="p">)</span>
+</span><span class='line'><span class="k">rescue</span>
+</span><span class='line'>  <span class="n">value</span><span class="p">(</span><span class="ss">:rescue1</span><span class="p">)</span>
+</span><span class='line'><span class="k">else</span>
+</span><span class='line'>  <span class="n">value</span><span class="p">(</span><span class="ss">:else1</span><span class="p">)</span>
+</span><span class='line'><span class="k">ensure</span>
+</span><span class='line'>  <span class="n">value</span><span class="p">(</span><span class="ss">:ensure1</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">fn1</span><span class="p">()</span> <span class="c1">#=&gt; :else1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Output:</p>
+
+<pre><code>ran fn1
 ran else1
 ran ensure1
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;h3&gt;Function with error:&lt;/h3&gt;
+<h3>Function with error:</h3>
 
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;span class='line'&gt;3&lt;/span&gt;
-&lt;span class='line'&gt;4&lt;/span&gt;
-&lt;span class='line'&gt;5&lt;/span&gt;
-&lt;span class='line'&gt;6&lt;/span&gt;
-&lt;span class='line'&gt;7&lt;/span&gt;
-&lt;span class='line'&gt;8&lt;/span&gt;
-&lt;span class='line'&gt;9&lt;/span&gt;
-&lt;span class='line'&gt;10&lt;/span&gt;
-&lt;span class='line'&gt;11&lt;/span&gt;
-&lt;span class='line'&gt;12&lt;/span&gt;
-&lt;span class='line'&gt;13&lt;/span&gt;
-&lt;span class='line'&gt;14&lt;/span&gt;
-&lt;span class='line'&gt;15&lt;/span&gt;
-&lt;span class='line'&gt;16&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;ran &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fn2&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:fn2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:rescue2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:else2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:ensure2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;n&quot;&gt;fn2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; :rescue2&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="n">sym</span><span class="p">)</span>
+</span><span class='line'>  <span class="nb">puts</span><span class="p">(</span><span class="s2">&quot;ran </span><span class="si">#{</span><span class="n">sym</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">sym</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">fn2</span>
+</span><span class='line'>  <span class="k">raise</span> <span class="n">value</span><span class="p">(</span><span class="ss">:fn2</span><span class="p">)</span>
+</span><span class='line'><span class="k">rescue</span>
+</span><span class='line'>  <span class="n">value</span><span class="p">(</span><span class="ss">:rescue2</span><span class="p">)</span>
+</span><span class='line'><span class="k">else</span>
+</span><span class='line'>  <span class="n">value</span><span class="p">(</span><span class="ss">:else2</span><span class="p">)</span>
+</span><span class='line'><span class="k">ensure</span>
+</span><span class='line'>  <span class="n">value</span><span class="p">(</span><span class="ss">:ensure2</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">fn2</span><span class="p">()</span> <span class="c1">#=&gt; :rescue2</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-&lt;p&gt;Output:&lt;/p&gt;
+<p>Output:</p>
 
-&lt;pre&gt;&lt;code&gt;ran fn2
+<pre><code>ran fn2
 ran rescue2
 ran ensure2
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;h3&gt;Function with return in main body&lt;/h3&gt;
+<h3>Function with return in main body</h3>
 
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;span class='line'&gt;3&lt;/span&gt;
-&lt;span class='line'&gt;4&lt;/span&gt;
-&lt;span class='line'&gt;5&lt;/span&gt;
-&lt;span class='line'&gt;6&lt;/span&gt;
-&lt;span class='line'&gt;7&lt;/span&gt;
-&lt;span class='line'&gt;8&lt;/span&gt;
-&lt;span class='line'&gt;9&lt;/span&gt;
-&lt;span class='line'&gt;10&lt;/span&gt;
-&lt;span class='line'&gt;11&lt;/span&gt;
-&lt;span class='line'&gt;12&lt;/span&gt;
-&lt;span class='line'&gt;13&lt;/span&gt;
-&lt;span class='line'&gt;14&lt;/span&gt;
-&lt;span class='line'&gt;15&lt;/span&gt;
-&lt;span class='line'&gt;16&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;ran &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fn3&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:fn3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:rescue3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:else3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:ensure3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;n&quot;&gt;fn3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; :fn3&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="n">sym</span><span class="p">)</span>
+</span><span class='line'>  <span class="nb">puts</span><span class="p">(</span><span class="s2">&quot;ran </span><span class="si">#{</span><span class="n">sym</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">sym</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">fn3</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">value</span><span class="p">(</span><span class="ss">:fn3</span><span class="p">)</span>
+</span><span class='line'><span class="k">rescue</span>
+</span><span class='line'>  <span class="n">value</span><span class="p">(</span><span class="ss">:rescue3</span><span class="p">)</span>
+</span><span class='line'><span class="k">else</span>
+</span><span class='line'>  <span class="n">value</span><span class="p">(</span><span class="ss">:else3</span><span class="p">)</span>
+</span><span class='line'><span class="k">ensure</span>
+</span><span class='line'>  <span class="n">value</span><span class="p">(</span><span class="ss">:ensure3</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">fn3</span><span class="p">()</span> <span class="c1">#=&gt; :fn3</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-&lt;p&gt;Output:&lt;/p&gt;
+<p>Output:</p>
 
-&lt;pre&gt;&lt;code&gt;ran fn3
+<pre><code>ran fn3
 ran ensure3
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;h3&gt;Function with return in main body and return in ensure block&lt;/h3&gt;
+<h3>Function with return in main body and return in ensure block</h3>
 
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;span class='line'&gt;3&lt;/span&gt;
-&lt;span class='line'&gt;4&lt;/span&gt;
-&lt;span class='line'&gt;5&lt;/span&gt;
-&lt;span class='line'&gt;6&lt;/span&gt;
-&lt;span class='line'&gt;7&lt;/span&gt;
-&lt;span class='line'&gt;8&lt;/span&gt;
-&lt;span class='line'&gt;9&lt;/span&gt;
-&lt;span class='line'&gt;10&lt;/span&gt;
-&lt;span class='line'&gt;11&lt;/span&gt;
-&lt;span class='line'&gt;12&lt;/span&gt;
-&lt;span class='line'&gt;13&lt;/span&gt;
-&lt;span class='line'&gt;14&lt;/span&gt;
-&lt;span class='line'&gt;15&lt;/span&gt;
-&lt;span class='line'&gt;16&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;ran &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fn4&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:fn4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:rescue4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:else4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:ensure4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;n&quot;&gt;fn4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; :ensure4&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="n">sym</span><span class="p">)</span>
+</span><span class='line'>  <span class="nb">puts</span><span class="p">(</span><span class="s2">&quot;ran </span><span class="si">#{</span><span class="n">sym</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">sym</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">fn4</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">value</span><span class="p">(</span><span class="ss">:fn4</span><span class="p">)</span>
+</span><span class='line'><span class="k">rescue</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">value</span><span class="p">(</span><span class="ss">:rescue4</span><span class="p">)</span>
+</span><span class='line'><span class="k">else</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">value</span><span class="p">(</span><span class="ss">:else4</span><span class="p">)</span>
+</span><span class='line'><span class="k">ensure</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">value</span><span class="p">(</span><span class="ss">:ensure4</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">fn4</span><span class="p">()</span> <span class="c1">#=&gt; :ensure4</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-&lt;p&gt;Output:&lt;/p&gt;
+<p>Output:</p>
 
-&lt;pre&gt;&lt;code&gt;ran fn4
+<pre><code>ran fn4
 ran ensure4
-&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
 
-&lt;h3&gt;Function with return in main body and in ensure and error raised&lt;/h3&gt;
+<h3>Function with return in main body and in ensure and error raised</h3>
 
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;span class='line'&gt;3&lt;/span&gt;
-&lt;span class='line'&gt;4&lt;/span&gt;
-&lt;span class='line'&gt;5&lt;/span&gt;
-&lt;span class='line'&gt;6&lt;/span&gt;
-&lt;span class='line'&gt;7&lt;/span&gt;
-&lt;span class='line'&gt;8&lt;/span&gt;
-&lt;span class='line'&gt;9&lt;/span&gt;
-&lt;span class='line'&gt;10&lt;/span&gt;
-&lt;span class='line'&gt;11&lt;/span&gt;
-&lt;span class='line'&gt;12&lt;/span&gt;
-&lt;span class='line'&gt;13&lt;/span&gt;
-&lt;span class='line'&gt;14&lt;/span&gt;
-&lt;span class='line'&gt;15&lt;/span&gt;
-&lt;span class='line'&gt;16&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;nb&quot;&gt;puts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;ran &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;n&quot;&gt;sym&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fn5&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:fn5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:rescue5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:else5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;ensure&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:ensure5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;n&quot;&gt;fn5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;#=&amp;gt; :ensure5&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="n">sym</span><span class="p">)</span>
+</span><span class='line'>  <span class="nb">puts</span><span class="p">(</span><span class="s2">&quot;ran </span><span class="si">#{</span><span class="n">sym</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">sym</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">fn5</span>
+</span><span class='line'>  <span class="k">return</span> <span class="k">raise</span> <span class="n">value</span><span class="p">(</span><span class="ss">:fn5</span><span class="p">)</span>
+</span><span class='line'><span class="k">rescue</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">value</span><span class="p">(</span><span class="ss">:rescue5</span><span class="p">)</span>
+</span><span class='line'><span class="k">else</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">value</span><span class="p">(</span><span class="ss">:else5</span><span class="p">)</span>
+</span><span class='line'><span class="k">ensure</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">value</span><span class="p">(</span><span class="ss">:ensure5</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">fn5</span><span class="p">()</span> <span class="c1">#=&gt; :ensure5</span>
+</span></code></pre></td></tr></table></div></figure>
 
 
-&lt;p&gt;Output:&lt;/p&gt;
+<p>Output:</p>
 
-&lt;pre&gt;&lt;code&gt;ran fn5
+<pre><code>ran fn5
 ran rescue5
 ran ensure5
-&lt;/code&gt;&lt;/pre&gt;
-</content>
+</code></pre>
+]]></content>
   </entry>
   
   <entry>
-    <title>Passenger Standalone on Ubuntu 11.10 (Oneiric Ocelot)</title>
+    <title type="html"><![CDATA[Passenger Standalone on Ubuntu 11.10 (Oneiric Ocelot)]]></title>
     <link href="http://geoffyoungs.github.com/blog/2011/09/27/passenger-standalone-on-ubuntu-11-dot-10-oneiric/"/>
     <updated>2011-09-27T09:51:00+01:00</updated>
     <id>http://geoffyoungs.github.com/blog/2011/09/27/passenger-standalone-on-ubuntu-11-dot-10-oneiric</id>
-    <content type="html">&lt;p&gt;Until &lt;a href=&quot;http://code.google.com/p/phusion-passenger/issues/detail?id=704&quot;&gt;issue 704&lt;/a&gt; is resolved, &lt;a href=&quot;http://www.modrails.com/&quot;&gt;Passenger Standalone&lt;/a&gt; won't compile properly on Ubuntu 11.10 (Oneirc Ocelot - currently pre-release) using the default settings.&lt;/p&gt;
+    <content type="html"><![CDATA[<p>Until <a href="http://code.google.com/p/phusion-passenger/issues/detail?id=704">issue 704</a> is resolved, <a href="http://www.modrails.com/">Passenger Standalone</a> won&#8217;t compile properly on Ubuntu 11.10 (Oneirc Ocelot - currently pre-release) using the default settings.</p>
 
-&lt;p&gt;To work around this, use GCC 4.4 instead.  You'll need to install &lt;code&gt;gcc-4.4&lt;/code&gt; and &lt;code&gt;libstdc++6-4.4-dev&lt;/code&gt; and then specify GCC 4.4 at compile time using the CC environment variable.&lt;/p&gt;
+<p>To work around this, use GCC 4.4 instead.  You&#8217;ll need to install <code>gcc-4.4</code> and <code>libstdc++6-4.4-dev</code> and then specify GCC 4.4 at compile time using the CC environment variable.</p>
 
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='bash'&gt;&lt;div class='line'&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;sudo apt-get install gcc-4.4 libstdc++6-4.4-dev
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;nv&quot;&gt;$ CC&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;gcc-4.4 passenger start
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>sudo apt-get install gcc-4.4 libstdc++6-4.4-dev
+</span><span class='line'><span class="nv">$ CC</span><span class="o">=</span>gcc-4.4 passenger start
+</span></code></pre></td></tr></table></div></figure>
 
 
-&lt;p&gt;Hopefully this will help anyone else who's updated to the latest Ubuntu pre-release and still wants to use Passenger Standalone.&lt;/p&gt;
-</content>
+<p>Hopefully this will help anyone else who&#8217;s updated to the latest Ubuntu pre-release and still wants to use Passenger Standalone.</p>
+]]></content>
   </entry>
   
   <entry>
-    <title>Playing With Zip - Russian Dolls</title>
+    <title type="html"><![CDATA[Playing With Zip - Russian Dolls]]></title>
     <link href="http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls/"/>
     <updated>2011-09-20T20:16:00+01:00</updated>
     <id>http://geoffyoungs.github.com/blog/2011/09/20/playing-with-zip-russian-dolls</id>
-    <content type="html">&lt;p&gt;The standard answer is that zip files can't contain more than one copy of a file without containing more than one copy of a file.  In other words, there's not a portable version of a *nix style hard link.&lt;/p&gt;
+    <content type="html"><![CDATA[<p>The standard answer is that zip files can&#8217;t contain more than one copy of a file without containing more than one copy of a file.  In other words, there&#8217;s not a portable version of a *nix style hard link.</p>
 
-&lt;p&gt;And that's kind of true.  However it is theoretically possible to create valid zip files that violate this principle in a platform independant manner.  Unfortunately this doesn't work properly with Stuffit :(&lt;/p&gt;
+<p>And that&#8217;s kind of true.  However it is theoretically possible to create valid zip files that violate this principle in a platform independant manner.  Unfortunately this doesn&#8217;t work properly with Stuffit :(</p>
 
-&lt;p&gt;The data for a file entry must start immediately following the header, but the header can be upto ~65k and ends with fields that should be ignored if they are not understood.  So we can stuff a local file header inside the end of a parent local file header (and prefix 32 bytes of &quot;unknown&quot; extra field) so that we have two valid local file headers that each end immediately before the only copy of the file data, as pictured:&lt;/p&gt;
+<p>The data for a file entry must start immediately following the header, but the header can be upto ~65k and ends with fields that should be ignored if they are not understood.  So we can stuff a local file header inside the end of a parent local file header (and prefix 32 bytes of &#8220;unknown&#8221; extra field) so that we have two valid local file headers that each end immediately before the only copy of the file data, as pictured:</p>
 
-&lt;p&gt;&lt;img alt=&quot;Stuffing headers inside headers like Russian Dolls&quot; src=&quot;http://geoffyoungs.github.com/media/diagram-4ef36d62870790b1334d7a1835e239d7.png&quot; width=&quot;410&quot; height=&quot;294&quot;&gt;&lt;/p&gt;
+<p><img alt="Stuffing headers inside headers like Russian Dolls" src="http://geoffyoungs.github.com/media/diagram-4ef36d62870790b1334d7a1835e239d7.png" width="410" height="294"></p>
 
-&lt;p&gt;And then we add the entries to Central Directory as if they were normal file entries.&lt;/p&gt;
+<p>And then we add the entries to Central Directory as if they were normal file entries.</p>
 
-&lt;p&gt;Tests work fine with &lt;a href=&quot;http://www.info-zip.org/&quot;&gt;Info-ZIP&lt;/a&gt;, &lt;a href=&quot;http://www.7-zip.org&quot;&gt;7-Zip&lt;/a&gt; and the Windows built-in zip support.  Unfortunately Stuffit on OS X only appears to recognise the &quot;normal&quot; entries (ie. doesn't extract the embedded headers).&lt;/p&gt;
-</content>
+<p>Tests work fine with <a href="http://www.info-zip.org/">Info-ZIP</a>, <a href="http://www.7-zip.org">7-Zip</a> and the Windows built-in zip support.  Unfortunately Stuffit on OS X only appears to recognise the &#8220;normal&#8221; entries (ie. doesn&#8217;t extract the embedded headers).</p>
+]]></content>
   </entry>
   
   <entry>
-    <title>Playing With Zip</title>
+    <title type="html"><![CDATA[Playing With Zip]]></title>
     <link href="http://geoffyoungs.github.com/blog/2011/09/05/playing-with-zip/"/>
     <updated>2011-09-05T18:36:00+01:00</updated>
     <id>http://geoffyoungs.github.com/blog/2011/09/05/playing-with-zip</id>
-    <content type="html">&lt;p&gt;I wanted to stream zip files with lots of JPEGs in.  Hundreds of JPEGs from digital cameras and, being as they were JPEGs, didn't really care about trying to compress them any further.&lt;/p&gt;
+    <content type="html"><![CDATA[<p>I wanted to stream zip files with lots of JPEGs in.  Hundreds of JPEGs from digital cameras and, being as they were JPEGs, didn&#8217;t really care about trying to compress them any further.</p>
 
-&lt;ol&gt;
-&lt;li&gt;I wanted to create (potentially) huge archives.  So I'd need something that supported ZIP64 extensions.&lt;/li&gt;
-&lt;li&gt;I wanted to mix local files and files streamed from internal web servers.&lt;/li&gt;
-&lt;li&gt;I wanted to create a zip file on the fly, with minimal buffering, to minimize disk and memory requirements.&lt;/li&gt;
-&lt;li&gt;I wanted to support large numbers of simultaneous downloads.&lt;/li&gt;
-&lt;li&gt;I also wanted (if possible) to efficiently include the same file more than once in an archive with different filenames.&lt;/li&gt;
-&lt;li&gt;I wanted to continue to use zip archives.&lt;/li&gt;
-&lt;/ol&gt;
-
-
-&lt;p&gt;Simples?&lt;/p&gt;
-
-&lt;p&gt;If only.&lt;/p&gt;
-
-&lt;h3&gt;Streaming ZIP64 support (or lack thereof)&lt;/h3&gt;
-
-&lt;p&gt;There are several ruby zip libraries, e.g. &lt;a href=&quot;http://rubyzip.sourceforge.net/&quot;&gt;rubyzip&lt;/a&gt;, &lt;a href=&quot;https://bitbucket.org/winebarrel/zip-ruby/wiki/Home&quot;&gt;zip-ruby&lt;/a&gt; and &lt;a href=&quot;https://github.com/javanthropus/archive-zip&quot;&gt;archive-zip&lt;/a&gt; - but they seem to fall into two camps: pure ruby with no ZIP64 or wrapping a C library (e.g. libzip) but with no obvious way to create a zip file and start streaming it before it's complete.&lt;/p&gt;
-
-&lt;p&gt;So I indulged my NIH syndrome reflex and wrote &lt;a href=&quot;https://github.com/geoffyoungs/zip64writer&quot;&gt;zip64writer&lt;/a&gt; which streams zip files and can automatically starts using ZIP64 extensions when needed. (I did look at adding ZIP64 support to rubyzip, but I figured fairly quickly that it would be easier to roll a specifically targetted library than adapt it to my needs.)&lt;/p&gt;
-
-&lt;p&gt;So writing a zip file to a stream works something like:&lt;/p&gt;
-
-&lt;div&gt;&lt;figure role=code&gt; &lt;div class=&quot;highlight&quot;&gt;&lt;table cellpadding=&quot;0&quot; cellspacing=&quot;0&quot;&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre class=&quot;line-numbers&quot;&gt;&lt;span class='line'&gt;1&lt;/span&gt;
-&lt;span class='line'&gt;2&lt;/span&gt;
-&lt;span class='line'&gt;3&lt;/span&gt;
-&lt;span class='line'&gt;4&lt;/span&gt;
-&lt;span class='line'&gt;5&lt;/span&gt;
-&lt;span class='line'&gt;6&lt;/span&gt;
-&lt;span class='line'&gt;7&lt;/span&gt;
-&lt;span class='line'&gt;8&lt;/span&gt;
-&lt;span class='line'&gt;9&lt;/span&gt;
-&lt;span class='line'&gt;10&lt;/span&gt;
-&lt;span class='line'&gt;11&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;td class='code' width='100%'&gt;&lt;pre&gt;&lt;code class='ruby'&gt;&lt;div class='line'&gt;&lt;span class=&quot;nb&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;zip64/writer&amp;#39;&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;no&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;output.zip&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;wb&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;no&quot;&gt;Zip64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;ZipWriter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;        &lt;span class=&quot;no&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;sample.jpg&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;rb&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rfp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;            &lt;span class=&quot;n&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;add_entry&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rfp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;                    &lt;span class=&quot;ss&quot;&gt;:mtime&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;now&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;                    &lt;span class=&quot;ss&quot;&gt;:name&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;myphoto.jpg&amp;#39;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;        &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;    &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# Implicit close writes central directory to stream&lt;/span&gt;
-&lt;/div&gt;&lt;div class='line'&gt;&lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
-&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/div&gt;&lt;/figure&gt;&lt;/div&gt;
+<ol>
+<li>I wanted to create (potentially) huge archives.  So I&#8217;d need something that supported ZIP64 extensions.</li>
+<li>I wanted to mix local files and files streamed from internal web servers.</li>
+<li>I wanted to create a zip file on the fly, with minimal buffering, to minimize disk and memory requirements.</li>
+<li>I wanted to support large numbers of simultaneous downloads.</li>
+<li>I also wanted (if possible) to efficiently include the same file more than once in an archive with different filenames.</li>
+<li>I wanted to continue to use zip archives.</li>
+</ol>
 
 
-&lt;p&gt;ZIP64 extensions are extra header fields, and an extra couple of blocks at the end of the zip file, which allow zip files to contain more than 65,535 entries (the limit of a 16bit integer) &amp;amp; for the zip archives (and the files inside them) to be greater than 4 Gb (the limit of a 32bit integer) in size.&lt;/p&gt;
+<p>Simples?</p>
 
-&lt;p&gt;&lt;img alt=&quot;ASCII Art Diagram&quot; src=&quot;http://geoffyoungs.github.com/media/diagram-1b9d6331495747733185d5affed5e57a.png&quot; width=&quot;500&quot; height=&quot;266&quot;&gt;&lt;/p&gt;
+<p>If only.</p>
 
-&lt;p&gt;The writer detects when an offset requires a 64bit integer (ie. offset &gt;4Gb) and automatically starts using ZIP64 extensions - so the files are still as compatible as possible with old zip implementations that don't support ZIP64 (e.g. Windows XP shell).&lt;/p&gt;
+<h3>Streaming ZIP64 support (or lack thereof)</h3>
 
-&lt;p&gt;Basic testing reveals that ZIP64 files created this way (ie. a mix of standard encoding and ZIP64 encoding) work fine on Windows 7, OS X 10.5+.  (Also the version of file-roller shipped with Lucid Lynx opens them fine, although the version of zip shipped with Hardy Heron is too old.)&lt;/p&gt;
-</content>
+<p>There are several ruby zip libraries, e.g. <a href="http://rubyzip.sourceforge.net/">rubyzip</a>, <a href="https://bitbucket.org/winebarrel/zip-ruby/wiki/Home">zip-ruby</a> and <a href="https://github.com/javanthropus/archive-zip">archive-zip</a> - but they seem to fall into two camps: pure ruby with no ZIP64 or wrapping a C library (e.g. libzip) but with no obvious way to create a zip file and start streaming it before it&#8217;s complete.</p>
+
+<p>So I indulged my NIH syndrome reflex and wrote <a href="https://github.com/geoffyoungs/zip64writer">zip64writer</a> which streams zip files and can automatically starts using ZIP64 extensions when needed. (I did look at adding ZIP64 support to rubyzip, but I figured fairly quickly that it would be easier to roll a specifically targetted library than adapt it to my needs.)</p>
+
+<p>So writing a zip file to a stream works something like:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;zip64/writer&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;output.zip&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">fp</span><span class="o">|</span>
+</span><span class='line'>  <span class="ss">Zip64</span><span class="p">:</span><span class="ss">:ZipWriter</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">zip</span><span class="o">|</span>
+</span><span class='line'>      <span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;sample.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">rfp</span><span class="o">|</span>
+</span><span class='line'>          <span class="n">zip</span><span class="o">.</span><span class="n">add_entry</span><span class="p">(</span><span class="n">rfp</span><span class="p">,</span>
+</span><span class='line'>                  <span class="ss">:mtime</span> <span class="o">=&gt;</span> <span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+</span><span class='line'>                  <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s1">&#39;myphoto.jpg&#39;</span><span class="p">)</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span> <span class="c1"># Implicit close writes central directory to stream</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>ZIP64 extensions are extra header fields, and an extra couple of blocks at the end of the zip file, which allow zip files to contain more than 65,535 entries (the limit of a 16bit integer) &amp; for the zip archives (and the files inside them) to be greater than 4 Gb (the limit of a 32bit integer) in size.</p>
+
+<p><img alt="ASCII Art Diagram" src="http://geoffyoungs.github.com/media/diagram-1b9d6331495747733185d5affed5e57a.png" width="500" height="266"></p>
+
+<p>The writer detects when an offset requires a 64bit integer (ie. offset >4Gb) and automatically starts using ZIP64 extensions - so the files are still as compatible as possible with old zip implementations that don&#8217;t support ZIP64 (e.g. Windows XP shell).</p>
+
+<p>Basic testing reveals that ZIP64 files created this way (ie. a mix of standard encoding and ZIP64 encoding) work fine on Windows 7, OS X 10.5+.  (Also the version of file-roller shipped with Lucid Lynx opens them fine, although the version of zip shipped with Hardy Heron is too old.)</p>
+]]></content>
   </entry>
   
 </feed>
