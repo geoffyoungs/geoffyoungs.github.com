@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4285f4">
+    <title>EML Viewer</title>
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            color: #4285f4;
+        }
+        .email-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fff;
+        }
+        .email-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .field {
+            margin-bottom: 8px;
+        }
+        .field-label {
+            font-weight: bold;
+            color: #666;
+        }
+        .email-body {
+            line-height: 1.6;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            overflow-wrap: break-word;
+        }
+        .attachments {
+            margin-top: 20px;
+        }
+        .attachment {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .attachment-icon {
+            margin-right: 15px;
+            color: #4285f4;
+            font-size: 24px;
+        }
+        .attachment-info {
+            flex-grow: 1;
+        }
+        .attachment-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .attachment-size {
+            font-size: 12px;
+            color: #666;
+        }
+        .share-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .share-btn:hover {
+            background-color: #3367d6;
+        }
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+        .drop-zone.active {
+            border-color: #4285f4;
+            background-color: rgba(66, 133, 244, 0.1);
+        }
+        .file-input {
+            display: none;
+        }
+        .browse-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .no-file {
+            text-align: center;
+            color: #666;
+            margin: 50px 0;
+        }
+        .loading {
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>EML Viewer</h1>
+    </header>
+
+    <div id="drop-zone" class="drop-zone">
+        <p>Drop your .eml file here</p>
+        <p>or</p>
+        <input type="file" id="file-input" class="file-input" accept=".eml">
+        <button id="browse-btn" class="browse-btn">Browse Files</button>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <p>Parsing email...</p>
+    </div>
+
+    <div id="no-file" class="no-file">
+        <p>No email file loaded. Use the share feature from your email app to send an .eml file to this app, or upload one above.</p>
+    </div>
+
+    <div id="email-container" class="email-container" style="display: none;">
+        <div class="email-header">
+            <div class="field">
+                <span class="field-label">Subject:</span>
+                <span id="email-subject"></span>
+            </div>
+            <div class="field">
+                <span class="field-label">From:</span>
+                <span id="email-from"></span>
+            </div>
+            <div class="field">
+                <span class="field-label">To:</span>
+                <span id="email-to"></span>
+            </div>
+            <div class="field">
+                <span class="field-label">Date:</span>
+                <span id="email-date"></span>
+            </div>
+        </div>
+        <div id="email-body" class="email-body"></div>
+        <div class="attachments">
+            <h3>Attachments</h3>
+            <div id="attachments-list"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/emailjs-mime-parser/2.0.7/emailjs-mime-parser.min.js"></script>
+    <script>
+        // Register service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registered: ', registration);
+                    })
+                    .catch(error => {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+
+        // DOM elements
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const browseBtn = document.getElementById('browse-btn');
+        const emailContainer = document.getElementById('email-container');
+        const noFileMessage = document.getElementById('no-file');
+        const loadingMessage = document.getElementById('loading');
+        const emailSubject = document.getElementById('email-subject');
+        const emailFrom = document.getElementById('email-from');
+        const emailTo = document.getElementById('email-to');
+        const emailDate = document.getElementById('email-date');
+        const emailBody = document.getElementById('email-body');
+        const attachmentsList = document.getElementById('attachments-list');
+
+        // Variables to store current email data
+        let currentAttachments = [];
+
+        // Check if the app was launched via share target
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.location.search.includes('share-target')) {
+                handleShareTarget();
+            }
+        });
+
+        // Function to handle files shared via the Web Share Target API
+        async function handleShareTarget() {
+            try {
+                const formData = await navigator.getFiles();
+                if (formData && formData.length > 0) {
+                    const file = formData[0];
+                    if (file.name.endsWith('.eml')) {
+                        processEmlFile(file);
+                    } else {
+                        alert('Please share an .eml file.');
+                    }
+                }
+            } catch (error) {
+                console.error('Error handling share target:', error);
+            }
+        }
+
+        // Event listener for the browse button
+        browseBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Event listener for file input change
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file && file.name.endsWith('.eml')) {
+                processEmlFile(file);
+            } else {
+                alert('Please select an .eml file.');
+            }
+        });
+
+        // Drag and drop functionality
+        dropZone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropZone.classList.add('active');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('active');
+        });
+
+        dropZone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropZone.classList.remove('active');
+
+            const file = event.dataTransfer.files[0];
+            if (file && file.name.endsWith('.eml')) {
+                processEmlFile(file);
+            } else {
+                alert('Please drop an .eml file.');
+            }
+        });
+
+        // Function to process .eml file
+        function processEmlFile(file) {
+            showLoading();
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                parseEmlContent(e.target.result);
+            };
+            reader.onerror = function() {
+                hideLoading();
+                alert('Error reading the file.');
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Function to parse EML content
+        function parseEmlContent(buffer) {
+            try {
+                // Convert ArrayBuffer to Uint8Array
+                const uint8Array = new Uint8Array(buffer);
+
+                // Parse the email using emailjs-mime-parser
+                const parsed = emailjs.MimeParser.parseWithoutAttachments(uint8Array);
+
+                // Extract email headers
+                const subject = parsed.headers.subject ? parsed.headers.subject[0].value : 'No Subject';
+                const from = parsed.headers.from ? parsed.headers.from[0].value : 'Unknown Sender';
+                const to = parsed.headers.to ? parsed.headers.to[0].value : 'Unknown Recipient';
+                const date = parsed.headers.date ? new Date(parsed.headers.date[0].value).toLocaleString() : 'Unknown Date';
+
+                // Find the HTML or text body
+                let body = '';
+                let isHtml = false;
+
+                if (parsed.childNodes) {
+                    for (const part of parsed.childNodes) {
+                        if (part.contentType.value === 'text/html') {
+                            body = new TextDecoder().decode(part.content);
+                            isHtml = true;
+                            break;
+                        } else if (part.contentType.value === 'text/plain') {
+                            body = new TextDecoder().decode(part.content);
+                        }
+                    }
+                }
+
+                // Extract attachments
+                currentAttachments = [];
+                if (parsed.attachments && parsed.attachments.length > 0) {
+                    for (const attachment of parsed.attachments) {
+                        currentAttachments.push({
+                            filename: attachment.filename,
+                            contentType: attachment.contentType.value,
+                            content: attachment.content
+                        });
+                    }
+                }
+
+                // Display the email
+                displayEmail(subject, from, to, date, body, isHtml, currentAttachments);
+                hideLoading();
+
+            } catch (error) {
+                console.error('Error parsing EML file:', error);
+                hideLoading();
+                alert('Error parsing the email file. Please try another file.');
+            }
+        }
+
+        // Function to display the email
+        function displayEmail(subject, from, to, date, body, isHtml, attachments) {
+            emailSubject.textContent = subject;
+            emailFrom.textContent = from;
+            emailTo.textContent = to;
+            emailDate.textContent = date;
+
+            if (isHtml) {
+                // Create a sandbox iframe to render HTML content safely
+                const iframe = document.createElement('iframe');
+                iframe.style.width = '100%';
+                iframe.style.height = '500px';
+                iframe.style.border = 'none';
+
+                emailBody.innerHTML = '';
+                emailBody.appendChild(iframe);
+
+                // Write the HTML content to the iframe
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                iframeDoc.open();
+                iframeDoc.write(body);
+                iframeDoc.close();
+
+                // Adjust iframe height to match content
+                iframe.onload = function() {
+                    iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+                };
+            } else {
+                // Display plain text with line breaks
+                emailBody.innerHTML = body.replace(/\n/g, '<br>');
+            }
+
+            // Display attachments
+            displayAttachments(attachments);
+
+            // Show the email container
+            emailContainer.style.display = 'block';
+            noFileMessage.style.display = 'none';
+        }
+
+        // Function to display attachments
+        function displayAttachments(attachments) {
+            attachmentsList.innerHTML = '';
+
+            if (!attachments || attachments.length === 0) {
+                attachmentsList.innerHTML = '<p>No attachments found.</p>';
+                return;
+            }
+
+            attachments.forEach((attachment, index) => {
+                const attachmentDiv = document.createElement('div');
+                attachmentDiv.className = 'attachment';
+
+                // Create a unique blob URL for the attachment
+                const blob = new Blob([attachment.content], { type: attachment.contentType });
+                const blobUrl = URL.createObjectURL(blob);
+
+                attachmentDiv.innerHTML = `
+                    <div class="attachment-icon">📎</div>
+                    <div class="attachment-info">
+                        <div class="attachment-name">${escapeHtml(attachment.filename)}</div>
+                        <div class="attachment-size">${formatBytes(attachment.content.byteLength)}</div>
+                    </div>
+                    <a href="${blobUrl}" download="${escapeHtml(attachment.filename)}" class="share-btn">Download</a>
+                    <button class="share-btn share-attachment" data-index="${index}">Share</button>
+                `;
+
+                attachmentsList.appendChild(attachmentDiv);
+            });
+
+            // Add event listeners for share buttons
+            const shareButtons = document.querySelectorAll('.share-attachment');
+            shareButtons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const index = parseInt(event.target.getAttribute('data-index'));
+                    shareAttachment(attachments[index]);
+                });
+            });
+        }
+
+        // Function to share an attachment
+        async function shareAttachment(attachment) {
+            try {
+                const blob = new Blob([attachment.content], { type: attachment.contentType });
+                const file = new File([blob], attachment.filename, { type: attachment.contentType });
+
+                if (navigator.share && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'Shared attachment',
+                        text: `Attachment: ${attachment.filename}`
+                    });
+                } else {
+                    // Fallback for browsers that don't support file sharing
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = attachment.filename;
+                    a.click();
+                    URL.revokeObjectURL(blobUrl);
+                }
+            } catch (error) {
+                console.error('Error sharing attachment:', error);
+                alert('Unable to share the attachment. You can download it instead.');
+            }
+        }
+
+        // Helper function to format bytes
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        // Helper function to escape HTML
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Show loading message
+        function showLoading() {
+            loadingMessage.style.display = 'block';
+            emailContainer.style.display = 'none';
+            noFileMessage.style.display = 'none';
+        }
+
+        // Hide loading message
+        function hideLoading() {
+            loadingMessage.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="256" fill="#4285f4"/>
+  
+  <!-- Envelope body -->
+  <rect x="96" y="156" width="320" height="200" rx="10" ry="10" fill="#ffffff"/>
+  
+  <!-- Envelope flap -->
+  <path d="M96 166 L256 266 L416 166 L416 156 Q416 146 406 146 L106 146 Q96 146 96 156 Z" fill="#f5f5f5"/>
+  
+  <!-- Envelope top fold line -->
+  <path d="M96 166 L256 266 L416 166" fill="none" stroke="#dddddd" stroke-width="4"/>
+  
+  <!-- Envelope center fold lines -->
+  <path d="M136 156 L136 356" fill="none" stroke="#dddddd" stroke-width="2"/>
+  <path d="M376 156 L376 356" fill="none" stroke="#dddddd" stroke-width="2"/>
+  
+  <!-- Decorative email symbol -->
+  <path d="M256 290 L116 190 L116 326 L396 326 L396 190 Z" fill="#e6e6e6"/>
+</svg>
